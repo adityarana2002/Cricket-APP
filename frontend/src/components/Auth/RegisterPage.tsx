@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import apiClient from '../../services/api';
 import './RegisterPage.css';
 
 interface RegisterFormData {
@@ -35,16 +35,12 @@ const RegisterPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        'http://localhost:8080/api/v1/auth/register',
-        formData
-      );
+      const response = await apiClient.post('/auth/register', formData);
 
       const { token, user } = response.data;
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
 
-      // Redirect to dashboard
       window.location.href = '/dashboard';
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');

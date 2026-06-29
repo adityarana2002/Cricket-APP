@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import apiClient from '../../services/api';
 import './LoginPage.css';
 
 interface LoginFormData {
@@ -29,10 +29,7 @@ const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        'http://localhost:8080/api/v1/auth/login',
-        formData
-      );
+      const response = await apiClient.post('/auth/login', formData);
 
       const { token, user } = response.data;
       localStorage.setItem('token', token);
