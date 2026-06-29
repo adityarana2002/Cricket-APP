@@ -1,4 +1,9 @@
 .git
+.github
+.idea
 target/
 *.md
+*.log
+*.iml
 .mvn/
+src/test/
