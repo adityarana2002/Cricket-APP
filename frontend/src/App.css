@@ -1,0 +1,23 @@
+/* App Styles */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.app-main {
+  flex: 1;
+  padding: 2rem 1rem;
+}
+
+.app-footer {
+  background: #1f2937;
+  color: white;
+  text-align: center;
+  padding: 2rem;
+}

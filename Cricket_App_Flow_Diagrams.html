@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cricket App - Complete Flow Diagrams</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tab-button {
+            background: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .tab-button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .diagram-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .diagram-container.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .diagram-container h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+        }
+
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f0f4ff;
+            border-radius: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+
+        .legend-item p {
+            margin: 0;
+            font-size: 0.9em;
+        }
+
+        .description {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            color: #333;
+        }
+
+        .description h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .description ul {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        .description li {
+            margin-bottom: 8px;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding: 20px;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .diagram-container {
+                padding: 15px;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab-button {
+                width: 100%;
+            }
+        }
+
+        .legend-box.user {
+            background: #667eea;
+        }
+
+        .legend-box.process {
+            background: #764ba2;
+        }
+
+        .legend-box.database {
+            background: #f093fb;
+        }
+
+        .legend-box.api {
+            background: #4facfe;
+        }
+
+        .legend-box.websocket {
+            background: #43e97b;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .summary-table th,
+        .summary-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .summary-table th {
+            background: #667eea;
+            color: white;
+        }
+
+        .summary-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .summary-table tr:hover {
+            background: #f0f4ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏏 Cricket App - Complete Flow Architecture</h1>
+            <p>Interactive Flow Diagrams for Web & Mobile Platform</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="showDiagram('user-flow')">User Flow</button>
+            <button class="tab-button" onclick="showDiagram('system-arch')">System Architecture</button>
+            <button class="tab-button" onclick="showDiagram('match-flow')">Match Lifecycle</button>
+            <button class="tab-button" onclick="showDiagram('real-time')">Real-time Flow</button>
+            <button class="tab-button" onclick="showDiagram('api-flow')">API Flow</button>
+            <button class="tab-button" onclick="showDiagram('data-flow')">Data Flow</button>
+        </div>
+
+        <!-- 1. User Flow Diagram -->
+        <div id="user-flow" class="diagram-container active">
+            <h2>1️⃣ User Journey Flow</h2>
+            <div class="description">
+                <h3>User Onboarding & Core Activities</h3>
+                <p>This diagram shows the complete user journey from registration through to active participation in matches and tournaments.</p>
+            </div>
+            <div class="mermaid">
+                graph TD
+                    A["👤 New User"] -->|Visit App| B["🌐 Landing Page"]
+                    B -->|Sign Up| C["📝 Registration"]
+                    C -->|Email Verify| D["✅ Account Created"]
+                    D -->|Login| E["🏠 Dashboard"]
+                    
+                    E -->|Option 1| F["👥 Join Team"]
+                    E -->|Option 2| G["🏆 Browse Tournaments"]
+                    E -->|Option 3| H["⚔️ View Matches"]
+                    E -->|Option 4| I["📊 View Statistics"]
+                    
+                    F -->|Team Admin| J["👨‍💼 Manage Team"]
+                    F -->|Team Member| K["🎯 Play Matches"]
+                    
+                    J -->|Create Squad| L["🎪 Add Players"]
+                    L -->|Ready| K
+                    
+                    G -->|Register| M["📋 Tournament Entry"]
+                    M -->|Schedule| K
+                    
+                    H -->|Select Team| N["🔍 View Team Details"]
+                    N -->|View Player| O["📈 Player Stats"]
+                    
+                    K -->|Match Day| P["⏱️ Live Match"]
+                    P -->|Ball Updates| Q["🎯 Real-time Scoring"]
+                    Q -->|Match Ends| R["🏅 Results Posted"]
+                    
+                    R -->|View| S["📊 Match Statistics"]
+                    S -->|Track| I
+                    
+                    I -->|Personal Stats| T["👤 My Performance"]
+                    I -->|Global| U["🌍 Leaderboards"]
+                    
+                    U -->|Check Rank| V["🎖️ Achievements"]
+                    V -->|Share| W["📱 Social Features"]
+            </div>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-box user"></div>
+                    <p>User Action</p>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box process"></div>
+                    <p>Process/Activity</p>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box api"></div>
+                    <p>Data Retrieval</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. System Architecture Diagram -->
+        <div id="system-arch" class="diagram-container">
+            <h2>2️⃣ System Architecture & Components</h2>
+            <div class="description">
+                <h3>Complete Technology Stack & Integration</h3>
+                <p>Shows how all components interact across Web, Mobile, and Backend systems.</p>
+            </div>
+            <div class="mermaid">
+                graph TB
+                    subgraph Frontend["Frontend Layer"]
+                        WEB["Web Browser"]
+                        MOBILE["Mobile App"]
+                    end
+                    
+                    subgraph API["API Gateway"]
+                        GATEWAY["Load Balancing"]
+                    end
+                    
+                    subgraph Backend["Backend Java"]
+                        CONTROLLER["Controllers"]
+                        SERVICE["Services"]
+                        SECURITY["Security Layer"]
+                    end
+                    
+                    subgraph Cache["Cache Layer"]
+                        REDIS["Redis"]
+                    end
+                    
+                    subgraph Database["Database Layer"]
+                        POSTGRES["PostgreSQL"]
+                    end
+                    
+                    subgraph External["External Services"]
+                        EMAIL["Email Service"]
+                        STORAGE["Cloud Storage"]
+                        WEATHER["Weather API"]
+                    end
+                    
+                    subgraph Queue["Message Queue"]
+                        RABBIT["RabbitMQ"]
+                    end
+                    
+                    subgraph Monitoring["Monitoring"]
+                        PROMETHEUS["Prometheus"]
+                        GRAFANA["Grafana"]
+                        LOGS["ELK Stack"]
+                    end
+                    
+                    WEB --> GATEWAY
+                    MOBILE --> GATEWAY
+                    GATEWAY --> CONTROLLER
+                    CONTROLLER --> SECURITY
+                    SECURITY --> SERVICE
+                    SERVICE --> REDIS
+                    SERVICE --> POSTGRES
+                    SERVICE --> RABBIT
+                    RABBIT --> EMAIL
+                    RABBIT --> LOGS
+                    SERVICE --> STORAGE
+                    SERVICE --> WEATHER
+                    PROMETHEUS -.-> SERVICE
+                    GRAFANA -.-> PROMETHEUS
+                    LOGS -.-> SERVICE
+            </div>
+        </div>
+
+        <!-- 3. Match Lifecycle Flow -->
+        <div id="match-flow" class="diagram-container">
+            <h2>3️⃣ Match Lifecycle & Workflow</h2>
+            <div class="description">
+                <h3>Complete Match Journey from Creation to Results</h3>
+                <ul>
+                    <li><strong>Pre-Match:</strong> Creation, team selection, venue setup</li>
+                    <li><strong>Match Day:</strong> Toss, innings starts, ball-by-ball updates</li>
+                    <li><strong>Live:</strong> Real-time scoring, wickets, statistics</li>
+                    <li><strong>Post-Match:</strong> Results, statistics, records update</li>
+                </ul>
+            </div>
+            <div class="mermaid">
+                graph TD
+                    A["Match Creation"] --> B["Match Information"]
+                    B --> C["Match Settings"]
+                    C --> D["Teams Notified"]
+                    D --> E["Match Confirmed"]
+                    E --> F["Match Day - Toss"]
+                    F --> G["Innings Setup"]
+                    G --> H["Match Starts"]
+                    H --> I["Live Match Begins"]
+                    I --> J["Update System"]
+                    J --> K["Redis Update"]
+                    K --> L["Real-time Updates"]
+                    L --> M["All Users See"]
+                    J --> N["Wicket Event"]
+                    N --> J
+                    J --> O["Milestone Event"]
+                    O --> M
+                    J --> P["Overs Progress"]
+                    P --> Q{Match Ended?}
+                    Q -->|No| J
+                    Q -->|Yes| R["Match Ends"]
+                    R --> S["Calculate Results"]
+                    S --> T["Player Statistics"]
+                    T --> U["Leaderboards"]
+                    U --> V["Match Summary"]
+                    V --> W["Results Posted"]
+                    W --> X["Users View Details"]
+                    X --> Y["Social Share"]
+            </div>
+        </div>
+
+        <!-- 4. Real-time Update Flow -->
+        <div id="real-time" class="diagram-container">
+            <h2>4️⃣ Real-time Update & WebSocket Flow</h2>
+            <div class="description">
+                <h3>Live Data Streaming Architecture</h3>
+                <ul>
+                    <li><strong>WebSocket Connection:</strong> Bidirectional communication for instant updates</li>
+                    <li><strong>Redis Pub/Sub:</strong> Multi-user broadcasting of live events</li>
+                    <li><strong>Event Processing:</strong> Ball updates, wickets, milestones instantly sent</li>
+                </ul>
+            </div>
+            <div class="mermaid">
+                graph LR
+                    subgraph Scorer["Scorer Input"]
+                        INPUT["Scorer App"]
+                    end
+                    
+                    subgraph Backend["Backend Processing"]
+                        VALIDATE["Validate Ball Data"]
+                        CALCULATE["Calculate Runs"]
+                        PROCESS["Process Event"]
+                        STORE["Store in DB"]
+                    end
+                    
+                    subgraph Cache["Cache Layer"]
+                        REDIS["Redis Pub/Sub"]
+                    end
+                    
+                    subgraph Clients["Connected Users"]
+                        WEB["Web Users"]
+                        MOBILE["Mobile Users"]
+                        ADMIN["Admin Panel"]
+                    end
+                    
+                    INPUT --> VALIDATE
+                    VALIDATE --> CALCULATE
+                    CALCULATE --> PROCESS
+                    PROCESS --> STORE
+                    STORE --> REDIS
+                    
+                    REDIS --> WEB
+                    REDIS --> MOBILE
+                    REDIS --> ADMIN
+                    
+                    WEB --> UPDATE1["Update Scoreboard"]
+                    MOBILE --> UPDATE2["Update Mobile"]
+                    ADMIN --> UPDATE3["Admin Dashboard"]
+                    
+                    UPDATE1 -.-> USERS["All Users See Update"]
+                    UPDATE2 -.-> USERS
+                    UPDATE3 -.-> USERS
+            </div>
+        </div>
+
+        <!-- 5. API Flow Diagram -->
+        <div id="api-flow" class="diagram-container">
+            <h2>5️⃣ API Communication Flow</h2>
+            <div class="description">
+                <h3>REST API Request/Response Pattern</h3>
+                <p>Shows how frontend communicates with backend through REST APIs with authentication and error handling.</p>
+            </div>
+            <div class="mermaid">
+                graph TD
+                    CLIENT["Client"]
+                    AUTH["Authentication Layer"]
+                    REQUEST["Request with JWT Token"]
+                    GATEWAY["API Gateway"]
+                    VALIDATE["Validate Request"]
+                    CONTROLLER["Controller"]
+                    SERVICE["Service Layer"]
+                    DAO["Data Access"]
+                    DB["Database"]
+                    RESPONSE["Response JSON"]
+                    ERROR1["401 Unauthorized"]
+                    
+                    CLIENT --> AUTH
+                    AUTH --> REQUEST
+                    REQUEST --> GATEWAY
+                    GATEWAY --> VALIDATE
+                    VALIDATE --> CONTROLLER
+                    VALIDATE --> ERROR1
+                    CONTROLLER --> SERVICE
+                    SERVICE --> DAO
+                    DAO --> DB
+                    DB --> DAO
+                    DAO --> SERVICE
+                    SERVICE --> RESPONSE
+                    RESPONSE --> CLIENT
+                    ERROR1 -.-> CLIENT
+            </div>
+            
+            <div class="description" style="margin-top: 20px;">
+                <h3>API Endpoints Summary</h3>
+            </div>
+            
+            <table class="summary-table">
+                <tr>
+                    <th>Category</th>
+                    <th>Endpoint</th>
+                    <th>Method</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td><strong>Auth</strong></td>
+                    <td>/api/v1/auth/register</td>
+                    <td>POST</td>
+                    <td>User Registration</td>
+                </tr>
+                <tr>
+                    <td><strong>Auth</strong></td>
+                    <td>/api/v1/auth/login</td>
+                    <td>POST</td>
+                    <td>User Login</td>
+                </tr>
+                <tr>
+                    <td><strong>Matches</strong></td>
+                    <td>/api/v1/matches</td>
+                    <td>GET</td>
+                    <td>Retrieve All Matches</td>
+                </tr>
+                <tr>
+                    <td><strong>Matches</strong></td>
+                    <td>/api/v1/matches</td>
+                    <td>POST</td>
+                    <td>Create Match</td>
+                </tr>
+                <tr>
+                    <td><strong>Matches</strong></td>
+                    <td>/api/v1/matches/{id}/ball</td>
+                    <td>POST</td>
+                    <td>Record Ball</td>
+                </tr>
+                <tr>
+                    <td><strong>Teams</strong></td>
+                    <td>/api/v1/teams</td>
+                    <td>GET/POST</td>
+                    <td>Team Management</td>
+                </tr>
+                <tr>
+                    <td><strong>Players</strong></td>
+                    <td>/api/v1/players</td>
+                    <td>GET/POST</td>
+                    <td>Player Management</td>
+                </tr>
+                <tr>
+                    <td><strong>Statistics</strong></td>
+                    <td>/api/v1/statistics/{playerId}</td>
+                    <td>GET</td>
+                    <td>Get Player Stats</td>
+                </tr>
+                <tr>
+                    <td><strong>Leaderboard</strong></td>
+                    <td>/api/v1/leaderboards/{id}</td>
+                    <td>GET</td>
+                    <td>Get Rankings</td>
+                </tr>
+                <tr>
+                    <td><strong>WebSocket</strong></td>
+                    <td>ws://host/ws</td>
+                    <td>WS</td>
+                    <td>Real-time Updates</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- 6. Data Flow Diagram -->
+        <div id="data-flow" class="diagram-container">
+            <h2>6️⃣ Complete Data Flow Architecture</h2>
+            <div class="description">
+                <h3>How Data Flows Through the System</h3>
+                <ul>
+                    <li><strong>Input:</strong> User creates match, records balls, updates scores</li>
+                    <li><strong>Processing:</strong> Validation, calculation, storage</li>
+                    <li><strong>Caching:</strong> Redis stores live scoreboard data</li>
+                    <li><strong>Broadcasting:</strong> WebSocket sends to all connected users</li>
+                    <li><strong>Analysis:</strong> Statistics calculated and stored</li>
+                </ul>
+            </div>
+            <div class="mermaid">
+                graph TB
+                    subgraph Input["Data Input"]
+                        UI1["User Input"]
+                        UI2["Scorer Input"]
+                        UI3["Admin Input"]
+                    end
+                    
+                    subgraph Validation["Validation"]
+                        V1["Check Data Format"]
+                        V2["Verify Permissions"]
+                    end
+                    
+                    subgraph Processing["Processing"]
+                        P1["Calculate Statistics"]
+                        P2["Update Rankings"]
+                        P3["Generate Events"]
+                    end
+                    
+                    subgraph Storage["Storage"]
+                        DB["PostgreSQL"]
+                        CACHE["Redis"]
+                    end
+                    
+                    subgraph Output["Output"]
+                        O1["Web Display"]
+                        O2["Mobile Display"]
+                        O3["Notifications"]
+                        O4["Reports"]
+                    end
+                    
+                    subgraph Archive["Analytics"]
+                        A1["Statistics Dashboard"]
+                        A2["Leaderboards"]
+                        A3["Analysis"]
+                    end
+                    
+                    UI1 --> V1
+                    UI2 --> V1
+                    UI3 --> V2
+                    
+                    V1 --> P1
+                    V2 --> P2
+                    P1 --> P3
+                    P2 --> P3
+                    P3 --> DB
+                    P3 --> CACHE
+                    
+                    DB --> O1
+                    CACHE --> O2
+                    CACHE --> O3
+                    DB --> O4
+                    
+                    DB --> A1
+                    DB --> A2
+                    DB --> A3
+                    
+                    A1 -.-> O1
+                    A2 -.-> O2
+                    A3 -.-> O4
+            </div>
+        </div>
+
+        <footer>
+            <p>🏏 Cricket App - Comprehensive System Design & Architecture</p>
+            <p>Version 1.0 | Generated for Development Planning</p>
+        </footer>
+    </div>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
+
+        function showDiagram(diagramId) {
+            // Hide all diagrams
+            const containers = document.querySelectorAll('.diagram-container');
+            containers.forEach(container => {
+                container.classList.remove('active');
+            });
+
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // Show selected diagram
+            const selected = document.getElementById(diagramId);
+            if (selected) {
+                selected.classList.add('active');
+                // Re-render mermaid diagrams
+                mermaid.contentLoaded();
+            }
+
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Smooth scrolling
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize first diagram
+            mermaid.contentLoaded();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# Backend .gitignore
+target/
+.classpath
+.project
+.settings/
+.idea/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+.vscode/
+*.swp
+*.swo
+*~
+.env
+.env.local
+logs/
+*.log
+build/
+dist/
+node_modules/
+.gradle/

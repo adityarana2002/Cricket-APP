@@ -1,0 +1,402 @@
+/* CricMax Premium Hero Section */
+
+.hero {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+}
+
+/* Background Effects */
+.hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
+.background-gradient {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #001F47 0%, #003D82 25%, #0052A3 50%, #003D82 75%, #001F47 100%);
+  animation: gradientShift 15s ease infinite;
+}
+
+.background-blur {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(5, 82, 163, 0.1) 0%, transparent 50%);
+  animation: blobMove 20s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes blobMove {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(50px, 50px);
+  }
+}
+
+/* Content */
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 1000px;
+  text-align: center;
+  animation: fadeInUp 1s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Logo */
+.hero-logo-wrapper {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: logoScale 1s ease-out 0.2s both, logoFloat 3s ease-in-out 1.2s infinite;
+}
+
+@keyframes logoScale {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.hero-logo {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 10px 40px rgba(212, 175, 55, 0.4));
+  transition: filter 0.3s ease;
+}
+
+.hero-logo-wrapper:hover .hero-logo {
+  filter: drop-shadow(0 20px 60px rgba(212, 175, 55, 0.6));
+}
+
+/* Title */
+.hero-title {
+  font-size: 60px;
+  font-weight: 800;
+  margin: 0 0 15px 0;
+  color: #F8F9FA;
+  line-height: 1.2;
+  animation: titleSlide 1s ease-out 0.3s both;
+}
+
+@keyframes titleSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.brand-name {
+  background: linear-gradient(135deg, #D4AF37 0%, #FFD700 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 2px;
+}
+
+/* Subtitle */
+.hero-subtitle {
+  font-size: 28px;
+  color: #D4AF37;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  letter-spacing: 1px;
+  animation: subtitleSlide 1s ease-out 0.4s both;
+}
+
+@keyframes subtitleSlide {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Description */
+.hero-description {
+  font-size: 18px;
+  color: rgba(248, 249, 250, 0.85);
+  max-width: 600px;
+  margin: 0 auto 40px;
+  line-height: 1.6;
+  animation: fadeInUp 1s ease-out 0.5s both;
+}
+
+/* Buttons */
+.hero-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 80px;
+  animation: fadeInUp 1s ease-out 0.6s both;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 16px 48px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: none;
+  letter-spacing: 1px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #D4AF37 0%, #FFD700 100%);
+  color: #001F47;
+  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 50px rgba(212, 175, 55, 0.5);
+}
+
+.btn-secondary {
+  border: 2px solid #D4AF37;
+  color: #D4AF37;
+  background: transparent;
+}
+
+.btn-secondary:hover {
+  background: #D4AF37;
+  color: #001F47;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+}
+
+/* Features Grid */
+.hero-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 30px;
+  padding-top: 60px;
+  border-top: 2px solid rgba(212, 175, 55, 0.3);
+}
+
+.feature {
+  padding: 30px;
+  background: rgba(212, 175, 55, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  transition: all 0.3s ease;
+  animation: featureFadeIn 1s ease-out 0.7s both;
+}
+
+@keyframes featureFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.feature:hover {
+  background: rgba(212, 175, 55, 0.1);
+  border-color: #D4AF37;
+  transform: translateY(-8px);
+  box-shadow: 0 15px 40px rgba(212, 175, 55, 0.2);
+}
+
+.feature-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.feature h3 {
+  font-size: 20px;
+  color: #D4AF37;
+  margin: 0 0 10px 0;
+  font-weight: 700;
+}
+
+.feature p {
+  font-size: 14px;
+  color: rgba(248, 249, 250, 0.7);
+  margin: 0;
+  line-height: 1.5;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .hero-title {
+    font-size: 48px;
+  }
+
+  .hero-subtitle {
+    font-size: 24px;
+  }
+
+  .hero-description {
+    font-size: 16px;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 14px 40px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    min-height: auto;
+    padding: 40px 15px;
+  }
+
+  .hero-logo-wrapper {
+    width: 150px;
+    height: 150px;
+    margin-bottom: 30px;
+  }
+
+  .hero-title {
+    font-size: 36px;
+  }
+
+  .hero-subtitle {
+    font-size: 20px;
+  }
+
+  .hero-description {
+    font-size: 15px;
+  }
+
+  .hero-buttons {
+    margin-bottom: 60px;
+    gap: 15px;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 12px 32px;
+    font-size: 14px;
+  }
+
+  .hero-features {
+    gap: 20px;
+  }
+
+  .feature {
+    padding: 20px;
+  }
+
+  .feature-icon {
+    font-size: 36px;
+  }
+
+  .feature h3 {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-logo-wrapper {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 25px;
+  }
+
+  .hero-title {
+    font-size: 28px;
+  }
+
+  .hero-subtitle {
+    font-size: 18px;
+  }
+
+  .hero-description {
+    font-size: 14px;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+    margin-bottom: 40px;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    padding: 12px 24px;
+  }
+
+  .hero-features {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .feature {
+    padding: 15px;
+  }
+
+  .feature-icon {
+    font-size: 32px;
+  }
+}

@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cricket App - Flow Diagrams</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tab-button {
+            background: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .tab-button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .diagram-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            display: none;
+            min-height: 500px;
+        }
+
+        .diagram-container.active {
+            display: block;
+        }
+
+        .diagram-container h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .diagram-container h3 {
+            color: #333;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .diagram-container p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .diagram-container ul {
+            margin-left: 20px;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding: 20px;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+            .tabs {
+                flex-direction: column;
+            }
+            .tab-button {
+                width: 100%;
+            }
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .table th,
+        .table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .table th {
+            background: #667eea;
+            color: white;
+        }
+
+        .table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Cricket App - Complete Flow Architecture</h1>
+            <p>Interactive Flow Diagrams for Development Planning</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('user-flow')">User Flow</button>
+            <button class="tab-button" onclick="showTab('system-arch')">System Architecture</button>
+            <button class="tab-button" onclick="showTab('match-flow')">Match Lifecycle</button>
+            <button class="tab-button" onclick="showTab('real-time')">Real-time Flow</button>
+            <button class="tab-button" onclick="showTab('api-flow')">API Flow</button>
+            <button class="tab-button" onclick="showTab('data-flow')">Data Flow</button>
+        </div>
+
+        <!-- User Flow -->
+        <div id="user-flow" class="diagram-container active">
+            <h2>User Journey Flow</h2>
+            <p>Complete user path from registration to match participation</p>
+            <div class="mermaid">
+graph TD
+    A["User"] --> B["Registration"]
+    B --> C["Login"]
+    C --> D["Dashboard"]
+    D --> E["Browse Teams"]
+    D --> F["Browse Matches"]
+    D --> G["Browse Tournaments"]
+    E --> H["Join Team"]
+    F --> I["View Match"]
+    G --> J["Register Tournament"]
+    H --> K["Play Match"]
+    I --> K
+    J --> K
+    K --> L["Live Scoring"]
+    L --> M["Match End"]
+    M --> N["View Stats"]
+    N --> O["Leaderboard"]
+            </div>
+        </div>
+
+        <!-- System Architecture -->
+        <div id="system-arch" class="diagram-container">
+            <h2>System Architecture</h2>
+            <p>Complete technology stack and component interaction</p>
+            <div class="mermaid">
+graph TB
+    subgraph Frontend["Frontend"]
+        WEB["Web App"]
+        MOBILE["Mobile App"]
+    end
+    
+    subgraph API["API Layer"]
+        GATEWAY["API Gateway"]
+    end
+    
+    subgraph Backend["Java Backend"]
+        CTRL["Controllers"]
+        SVC["Services"]
+        SEC["Security"]
+    end
+    
+    subgraph Data["Data Layer"]
+        DB["PostgreSQL"]
+        CACHE["Redis Cache"]
+    end
+    
+    subgraph External["External"]
+        EMAIL["Email Service"]
+        STORAGE["Cloud Storage"]
+        WEATHER["Weather API"]
+    end
+    
+    subgraph Queue["Message Queue"]
+        MQ["RabbitMQ"]
+    end
+    
+    WEB --> GATEWAY
+    MOBILE --> GATEWAY
+    GATEWAY --> CTRL
+    CTRL --> SEC
+    SEC --> SVC
+    SVC --> DB
+    SVC --> CACHE
+    SVC --> MQ
+    MQ --> EMAIL
+    SVC --> STORAGE
+    SVC --> WEATHER
+            </div>
+        </div>
+
+        <!-- Match Lifecycle -->
+        <div id="match-flow" class="diagram-container">
+            <h2>Match Lifecycle</h2>
+            <p>Complete match journey from creation to results</p>
+            <div class="mermaid">
+graph TD
+    A["Create Match"] --> B["Configure Settings"]
+    B --> C["Send Invitations"]
+    C --> D["Team Accepts"]
+    D --> E["Match Confirmed"]
+    E --> F["Match Day"]
+    F --> G["Toss"]
+    G --> H["Innings Starts"]
+    H --> I["Live Scoring"]
+    I --> J["Record Wickets"]
+    I --> K["Record Runs"]
+    J --> L["Check Status"]
+    K --> L
+    L --> M["Match Complete"]
+    M --> N["Calculate Results"]
+    N --> O["Update Statistics"]
+    O --> P["Post Results"]
+    P --> Q["View Scorecard"]
+            </div>
+        </div>
+
+        <!-- Real-time Flow -->
+        <div id="real-time" class="diagram-container">
+            <h2>Real-time Update Flow</h2>
+            <p>WebSocket and Redis Pub/Sub architecture for live updates</p>
+            <div class="mermaid">
+graph LR
+    SCORER["Scorer"] --> INPUT["Record Ball"]
+    INPUT --> VALIDATE["Validate"]
+    VALIDATE --> PROCESS["Process"]
+    PROCESS --> STORE["Store DB"]
+    STORE --> REDIS["Redis Pub/Sub"]
+    REDIS --> WEB["Web Users"]
+    REDIS --> MOBILE["Mobile Users"]
+    REDIS --> ADMIN["Admin Panel"]
+    WEB --> DISPLAY["Live Scoreboard"]
+    MOBILE --> DISPLAY
+    ADMIN --> DISPLAY
+            </div>
+        </div>
+
+        <!-- API Flow -->
+        <div id="api-flow" class="diagram-container">
+            <h2>API Communication Flow</h2>
+            <p>REST API request/response pattern with authentication</p>
+            <div class="mermaid">
+graph TD
+    CLIENT["Client App"] --> AUTH["Add JWT Token"]
+    AUTH --> REQUEST["HTTP Request"]
+    REQUEST --> GATEWAY["API Gateway"]
+    GATEWAY --> CHECK["Check Token"]
+    CHECK --> VALIDATE["Validate Token"]
+    VALIDATE --> ROUTE["Route to Handler"]
+    ROUTE --> CONTROLLER["Controller"]
+    CONTROLLER --> SERVICE["Service Logic"]
+    SERVICE --> DB["Query Database"]
+    DB --> RESULT["Get Data"]
+    RESULT --> RESPONSE["Build Response"]
+    RESPONSE --> CLIENT
+    VALIDATE --> ERROR["401 Error"]
+    ERROR -.-> CLIENT
+            </div>
+            
+            <h3>API Endpoints</h3>
+            <table class="table">
+                <tr>
+                    <th>Category</th>
+                    <th>Endpoint</th>
+                    <th>Method</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td>Authentication</td>
+                    <td>/api/v1/auth/register</td>
+                    <td>POST</td>
+                    <td>User Registration</td>
+                </tr>
+                <tr>
+                    <td>Authentication</td>
+                    <td>/api/v1/auth/login</td>
+                    <td>POST</td>
+                    <td>User Login</td>
+                </tr>
+                <tr>
+                    <td>Matches</td>
+                    <td>/api/v1/matches</td>
+                    <td>GET</td>
+                    <td>Get All Matches</td>
+                </tr>
+                <tr>
+                    <td>Matches</td>
+                    <td>/api/v1/matches</td>
+                    <td>POST</td>
+                    <td>Create Match</td>
+                </tr>
+                <tr>
+                    <td>Matches</td>
+                    <td>/api/v1/matches/{id}/ball</td>
+                    <td>POST</td>
+                    <td>Record Ball</td>
+                </tr>
+                <tr>
+                    <td>Teams</td>
+                    <td>/api/v1/teams</td>
+                    <td>GET/POST</td>
+                    <td>Team Management</td>
+                </tr>
+                <tr>
+                    <td>Players</td>
+                    <td>/api/v1/players</td>
+                    <td>GET/POST</td>
+                    <td>Player Management</td>
+                </tr>
+                <tr>
+                    <td>Statistics</td>
+                    <td>/api/v1/statistics/{id}</td>
+                    <td>GET</td>
+                    <td>Player Statistics</td>
+                </tr>
+                <tr>
+                    <td>WebSocket</td>
+                    <td>ws://host/ws</td>
+                    <td>WS</td>
+                    <td>Real-time Updates</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Data Flow -->
+        <div id="data-flow" class="diagram-container">
+            <h2>Complete Data Flow</h2>
+            <p>How data flows from input through processing to output</p>
+            <div class="mermaid">
+graph TB
+    subgraph INPUT["Input"]
+        U1["User Input"]
+        U2["Scorer Input"]
+        U3["Admin Input"]
+    end
+    
+    subgraph VALIDATE["Validation"]
+        V1["Check Format"]
+        V2["Verify Permission"]
+    end
+    
+    subgraph PROCESS["Processing"]
+        P1["Calculate Stats"]
+        P2["Update Rank"]
+        P3["Generate Events"]
+    end
+    
+    subgraph STORAGE["Storage"]
+        DB["PostgreSQL"]
+        CACHE["Redis"]
+    end
+    
+    subgraph OUTPUT["Output"]
+        O1["Web Display"]
+        O2["Mobile Display"]
+        O3["Notifications"]
+        O4["Reports"]
+    end
+    
+    subgraph ANALYTICS["Analytics"]
+        A1["Dashboard"]
+        A2["Leaderboard"]
+        A3["Analysis"]
+    end
+    
+    U1 --> V1
+    U2 --> V1
+    U3 --> V2
+    V1 --> P1
+    V2 --> P2
+    P1 --> P3
+    P2 --> P3
+    P3 --> DB
+    P3 --> CACHE
+    DB --> O1
+    CACHE --> O2
+    CACHE --> O3
+    DB --> O4
+    DB --> A1
+    DB --> A2
+    DB --> A3
+    A1 -.-> O1
+    A2 -.-> O2
+    A3 -.-> O4
+            </div>
+        </div>
+
+        <footer>
+            <p>Cricket App - Complete System Design & Architecture</p>
+            <p>Version 2.0 | Ready for Development</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'default',
+            flowchart: { useMaxWidth: true }
+        });
+
+        function showTab(tabId) {
+            const containers = document.querySelectorAll('.diagram-container');
+            containers.forEach(container => {
+                container.classList.remove('active');
+            });
+
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => {
+                button.classList.remove('active');
+            });
+
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+            
+            mermaid.contentLoaded();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            mermaid.contentLoaded();
+        });
+    </script>
+</body>
+</html>
