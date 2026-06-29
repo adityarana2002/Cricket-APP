@@ -15,7 +15,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/players")
 @Slf4j
-@CrossOrigin("http://localhost:3000")
 public class PlayerController {
 
     @Autowired

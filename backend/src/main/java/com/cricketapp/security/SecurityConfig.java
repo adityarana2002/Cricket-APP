@@ -51,11 +51,16 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // allowedOriginPatterns supports wildcards and works with allowCredentials=true
-        // Covers: localhost dev, any LAN IP (192.168.x.x, 10.x.x.x, 172.x.x.x) on any port
-        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedOriginPatterns(List.of(
+            "https://crickmax.vercel.app",
+            "https://*.vercel.app",
+            "http://localhost:*",
+            "http://127.0.0.1:*",
+            "http://192.168.*.*:*"
+        ));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
+        config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 
@@ -72,12 +77,19 @@ public class SecurityConfig {
             .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // Preflight
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/v1/auth/login").permitAll()
-                .requestMatchers("/api/v1/auth/register").permitAll()
-                .requestMatchers("/api/v1/auth/refresh-token").permitAll()
+                // Auth endpoints
+                .requestMatchers("/api/v1/auth/**").permitAll()
+                // Health check
                 .requestMatchers("/api/v1/health").permitAll()
-                .requestMatchers("/api/v1/**").authenticated()
+                // Spring error page
+                .requestMatchers("/error").permitAll()
+                // Swagger (for when springdoc is added)
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                // Actuator (for when spring-boot-actuator is added)
+                .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                // Everything else requires a valid JWT
                 .anyRequest().authenticated()
             );
 
