@@ -4,7 +4,6 @@ import FeatureSuggestions from '../components/FeatureSuggestions';
 import './HomePage.css';
 
 const HomePage: React.FC = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [currentFeatureIndex, setCurrentFeatureIndex] = useState(0);
   
   const features = [
@@ -29,14 +28,6 @@ const HomePage: React.FC = () => {
       description: 'Create a local match in seconds and start scoring right away'
     }
   ];
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
