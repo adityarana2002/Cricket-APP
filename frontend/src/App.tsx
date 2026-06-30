@@ -4,7 +4,6 @@ import Header from './components/Layout/Header';
 import SplashScreen from './components/SplashScreen';
 import LoginPage from './components/Auth/LoginPage';
 import RegisterPage from './components/Auth/RegisterPage';
-import HomePage from './pages/HomePage';
 import Dashboard from './pages/Dashboard';
 import ProfilePage from './pages/ProfilePage';
 import LocalMatchPage from './pages/LocalMatchPage';
@@ -17,6 +16,12 @@ interface PrivateRouteProps {
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ element }) => {
   const isLoggedIn = !!localStorage.getItem('token');
   return isLoggedIn ? element : <Navigate to="/login" replace />;
+};
+
+// Opening the app link lands on the login page (or the dashboard if already signed in)
+const RootRedirect: React.FC = () => {
+  const isLoggedIn = !!localStorage.getItem('token');
+  return <Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />;
 };
 
 function App() {
@@ -40,7 +45,7 @@ function App() {
         {isLoggedIn && <Header />}
         <main className="app-main">
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<RootRedirect />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/local-matches" element={<PrivateRoute element={<LocalMatchPage />} />} />
