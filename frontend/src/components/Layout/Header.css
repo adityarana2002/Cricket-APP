@@ -1,113 +1,343 @@
-.header {
-  background-color: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+/* ═══════════════════════════════════════════════════════════════
+   CricMax Header — professional navy + gold
+   ═══════════════════════════════════════════════════════════════ */
+.cmx-header {
   position: sticky;
   top: 0;
-  z-index: 50;
-  transition: all 0.3s ease;
+  z-index: 100;
+  width: 100%;
+  background: linear-gradient(135deg, #001F47 0%, #003D82 55%, #00295c 100%);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.18);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  transition: box-shadow 0.3s ease, background 0.3s ease;
 }
 
-.header.scrolled {
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+.cmx-header.cmx-scrolled {
+  background: linear-gradient(135deg, rgba(0, 28, 64, 0.92) 0%, rgba(0, 47, 110, 0.90) 100%);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.32);
+  border-bottom-color: rgba(212, 175, 55, 0.30);
 }
 
-.header-container {
-  max-width: 1200px;
+.cmx-header-inner {
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 1rem 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #1f2937;
-}
-
-.logo a {
-  text-decoration: none;
-  color: inherit;
-}
-
-.nav {
-  display: flex;
-  gap: 2rem;
-}
-
-.auth-buttons {
+  height: 66px;
+  padding: 0 24px;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 20px;
 }
 
-.login-btn, .register-btn {
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+/* ── Brand ── */
+.cmx-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
   text-decoration: none;
-  font-weight: 500;
-  transition: all 0.3s ease;
+  flex-shrink: 0;
+  margin-right: 8px;
 }
 
-.login-btn {
-  background-color: #3b82f6;
-  color: white;
+.cmx-brand-badge {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  border-radius: 11px;
+  background: linear-gradient(140deg, #D4AF37 0%, #B8940A 100%);
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.38);
+  flex-shrink: 0;
 }
 
-.login-btn:hover {
-  background-color: #2563eb;
+.cmx-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
 }
 
-.register-btn {
-  background-color: transparent;
-  border: 2px solid #3b82f6;
-  color: #3b82f6;
+.cmx-brand-name {
+  font-size: 1.22rem;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  background: linear-gradient(135deg, #F7DF82 0%, #D4AF37 50%, #ECC84A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.register-btn:hover {
-  background-color: #3b82f6;
-  color: white;
+.cmx-brand-tag {
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 2.6px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 1px;
 }
 
-.logout-btn {
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  background-color: #ef4444;
-  color: white;
-  border: none;
+/* ── Desktop nav ── */
+.cmx-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.cmx-nav-link {
+  position: relative;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.68);
+  text-decoration: none;
+  border-radius: 9px;
+  transition: color 0.18s ease, background 0.18s ease;
+}
+
+.cmx-nav-link::after {
+  content: '';
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 4px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #D4AF37, #F7DF82);
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+
+.cmx-nav-link:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.cmx-nav-active {
+  color: #ffffff;
+}
+
+.cmx-nav-active::after {
+  transform: scaleX(1);
+}
+
+/* ── Right actions ── */
+.cmx-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-left: auto;
+}
+
+.cmx-user {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.cmx-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #001225;
+  background: linear-gradient(140deg, #F7DF82, #D4AF37);
+  box-shadow: 0 2px 10px rgba(212, 175, 55, 0.32);
+  flex-shrink: 0;
+  letter-spacing: 0.3px;
+}
+
+.cmx-user-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.cmx-logout {
+  padding: 8px 18px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 9px;
   cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s ease;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
-.logout-btn:hover {
-  background-color: #dc2626;
+.cmx-logout:hover {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fecaca;
 }
 
-.user-greeting {
+/* ── Logged-out auth buttons ── */
+.cmx-auth-btns {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cmx-btn {
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 9px;
+  text-decoration: none;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+  white-space: nowrap;
+}
+
+.cmx-btn-ghost {
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.cmx-btn-ghost:hover { background: rgba(255, 255, 255, 0.08); }
+
+.cmx-btn-gold {
+  color: #001225;
+  background: linear-gradient(135deg, #F7DF82, #D4AF37);
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.32);
+}
+.cmx-btn-gold:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 22px rgba(212, 175, 55, 0.46);
+}
+
+/* ── Hamburger ── */
+.cmx-burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 0 9px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.cmx-burger-bar {
+  display: block;
+  height: 2px;
+  width: 100%;
+  border-radius: 2px;
+  background: #ffffff;
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+.cmx-bar-1 { transform: translateY(7px) rotate(45deg); }
+.cmx-bar-2 { opacity: 0; }
+.cmx-bar-3 { transform: translateY(-7px) rotate(-45deg); }
+
+/* ── Mobile menu (slide-down panel) ── */
+.cmx-mobile {
+  position: fixed;
+  top: 66px;
+  left: 0;
+  right: 0;
+  z-index: 99;
+  background: linear-gradient(180deg, #002150 0%, #001533 100%);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  padding: 18px 20px 22px;
+  transform: translateY(-12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+}
+.cmx-mobile-open {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cmx-mobile-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+.cmx-avatar-lg { width: 46px; height: 46px; font-size: 1rem; }
+.cmx-mobile-user-info { display: flex; flex-direction: column; min-width: 0; }
+.cmx-mobile-name { font-size: 0.95rem; font-weight: 700; color: #fff; }
+.cmx-mobile-email {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cmx-mobile-nav { display: flex; flex-direction: column; gap: 4px; }
+.cmx-mobile-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 14px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.78);
+  text-decoration: none;
+  border-radius: 11px;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+.cmx-mobile-link:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+.cmx-mobile-active {
+  background: rgba(212, 175, 55, 0.12);
+  color: #F7DF82;
+}
+.cmx-mobile-arrow { font-size: 1.2rem; color: rgba(212, 175, 55, 0.6); }
+
+.cmx-mobile-logout {
+  width: 100%;
+  margin-top: 14px;
+  padding: 13px;
   font-size: 0.9rem;
-  color: #4b5563;
+  font-weight: 700;
+  font-family: inherit;
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid rgba(239, 68, 68, 0.32);
+  border-radius: 11px;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+.cmx-mobile-logout:hover { background: rgba(239, 68, 68, 0.24); }
+
+/* ── Backdrop ── */
+.cmx-backdrop {
+  position: fixed;
+  inset: 66px 0 0;
+  z-index: 98;
+  background: rgba(0, 8, 24, 0.5);
+  backdrop-filter: blur(2px);
 }
 
-/* Mobile menu styles */
+/* ── Responsive ── */
 @media (max-width: 768px) {
-  .header-container {
-    padding: 1rem;
-  }
-  
-  .nav {
-    display: none;
-  }
-  
-  .mobile-menu {
-    display: block;
-  }
-  
-  .mobile-menu-item {
-    padding: 0.75rem 0;
-    border-bottom: 1px solid #e5e7eb;
-  }
+  .cmx-header-inner { padding: 0 16px; gap: 12px; }
+  .cmx-nav { display: none; }
+  .cmx-user-name { display: none; }
+  .cmx-logout { display: none; }
+  .cmx-burger { display: flex; }
+}
+
+@media (min-width: 769px) {
+  .cmx-mobile, .cmx-backdrop { display: none; }
+}
+
+@media (max-width: 380px) {
+  .cmx-brand-tag { display: none; }
+  .cmx-user { display: none; }
 }

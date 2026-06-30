@@ -52,6 +52,8 @@ export interface LocalMatch {
   nonStriker?: string;
   currentBowler?: string;
   winnerName?: string;
+  isTie?: boolean;
+  createdByEmail?: string;
   matchDate: string;
   createdAt: string;
   updatedAt: string;
@@ -98,8 +100,10 @@ export const localMatchService = {
     return response.data;
   },
 
-  async endMatch(id: number, winnerTeamId: number): Promise<LocalMatch> {
-    const response = await apiClient.put(`/local-matches/${id}/end?winnerTeamId=${winnerTeamId}`);
+  async endMatch(id: number, winnerTeamId?: number | null): Promise<LocalMatch> {
+    // No winnerTeamId → the match is declared a TIE
+    const query = winnerTeamId != null ? `?winnerTeamId=${winnerTeamId}` : '';
+    const response = await apiClient.put(`/local-matches/${id}/end${query}`);
     return response.data;
   },
 

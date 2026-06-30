@@ -90,6 +90,10 @@ public class Match {
     @Column(unique = true, length = 10)
     private String matchCode;
 
+    // Email of the user who created this match — only this user (the scorer/owner)
+    // may edit the score. Null for legacy matches created before ownership existed.
+    private String createdByEmail;
+
     @Column(columnDefinition = "TEXT")
     private String description;
 

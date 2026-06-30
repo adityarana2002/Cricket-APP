@@ -17,6 +17,9 @@ body {
 html, body, #root {
   height: 100%;
   width: 100%;
+  max-width: 100%;
+  /* Guard against any element causing horizontal scroll on mobile */
+  overflow-x: hidden;
 }
 
 /* Custom scrollbar */

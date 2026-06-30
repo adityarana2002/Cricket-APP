@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -77,9 +78,12 @@ public class LocalMatchController {
     }
 
     @PutMapping("/{id}/start")
-    public ResponseEntity<?> startMatch(@PathVariable Long id) {
+    public ResponseEntity<?> startMatch(@PathVariable Long id, Authentication authentication) {
+        if (authentication == null) return ResponseEntity.status(401).build();
         try {
-            return ResponseEntity.ok(localMatchService.startMatch(id));
+            return ResponseEntity.ok(localMatchService.startMatch(id, authentication.getName()));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
             log.error("Error starting match {}: {}", id, e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
@@ -89,9 +93,13 @@ public class LocalMatchController {
     @PutMapping("/{id}/score")
     public ResponseEntity<?> updateScore(
             @PathVariable Long id,
-            @RequestBody UpdateScoreRequest request) {
+            @RequestBody UpdateScoreRequest request,
+            Authentication authentication) {
+        if (authentication == null) return ResponseEntity.status(401).build();
         try {
-            return ResponseEntity.ok(localMatchService.updateScore(id, request));
+            return ResponseEntity.ok(localMatchService.updateScore(id, request, authentication.getName()));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
             log.error("Error updating score for match {}: {}", id, e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
@@ -99,9 +107,12 @@ public class LocalMatchController {
     }
 
     @PutMapping("/{id}/switch-innings")
-    public ResponseEntity<?> switchInnings(@PathVariable Long id) {
+    public ResponseEntity<?> switchInnings(@PathVariable Long id, Authentication authentication) {
+        if (authentication == null) return ResponseEntity.status(401).build();
         try {
-            return ResponseEntity.ok(localMatchService.switchInnings(id));
+            return ResponseEntity.ok(localMatchService.switchInnings(id, authentication.getName()));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
             log.error("Error switching innings for match {}: {}", id, e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
@@ -111,9 +122,13 @@ public class LocalMatchController {
     @PutMapping("/{id}/end")
     public ResponseEntity<?> endMatch(
             @PathVariable Long id,
-            @RequestParam Long winnerTeamId) {
+            @RequestParam(required = false) Long winnerTeamId,
+            Authentication authentication) {
+        if (authentication == null) return ResponseEntity.status(401).build();
         try {
-            return ResponseEntity.ok(localMatchService.endMatch(id, winnerTeamId));
+            return ResponseEntity.ok(localMatchService.endMatch(id, winnerTeamId, authentication.getName()));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
             log.error("Error ending match {}: {}", id, e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));

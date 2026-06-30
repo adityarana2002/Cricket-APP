@@ -37,6 +37,8 @@ public class LocalMatchResponseDTO {
     private String nonStriker;
     private String currentBowler;
     private String winnerName;
+    private Boolean isTie;
+    private String createdByEmail;
     private LocalDateTime matchDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -1,122 +1,135 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import './Header.css';
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  
-  const user = localStorage.getItem('user');
+
+  const rawUser = localStorage.getItem('user');
   const isLoggedIn = !!localStorage.getItem('token');
 
+  let user: { firstName?: string; lastName?: string; email?: string } | null = null;
+  try { user = rawUser ? JSON.parse(rawUser) : null; } catch { user = null; }
+
+  const initials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase() || 'U';
+
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 12);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Lock body scroll while the mobile menu is open
+  useEffect(() => {
+    document.body.style.overflow = isMenuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [isMenuOpen]);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    setIsMenuOpen(false);
     navigate('/login');
   };
 
-  // Navigation items
   const navItems = [
+    { name: 'Dashboard', path: '/dashboard' },
     { name: 'Local Matches', path: '/local-matches' },
     { name: 'Profile', path: '/profile' },
   ];
 
   return (
-    <header className={`header ${isScrolled ? 'scrolled' : ''}`}>
-      <div className="header-container">
-        <div className="logo">
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="text-2xl">🏏</span>
-            <span className="font-bold text-xl">Cricket App</span>
-          </Link>
-        </div>
+    <header className={`cmx-header ${isScrolled ? 'cmx-scrolled' : ''}`}>
+      <div className="cmx-header-inner">
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
-          {navItems.map((item) => (
-            <Link 
-              key={item.path} 
-              to={item.path} 
-              className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-300"
-            >
-              {item.name}
-            </Link>
-          ))}
-        </nav>
+        {/* Brand */}
+        <Link to={isLoggedIn ? '/dashboard' : '/'} className="cmx-brand" onClick={() => setIsMenuOpen(false)}>
+          <span className="cmx-brand-badge">🏏</span>
+          <span className="cmx-brand-text">
+            <span className="cmx-brand-name">CricMax</span>
+            <span className="cmx-brand-tag">Master the Game</span>
+          </span>
+        </Link>
 
-        <div className="auth-buttons">
+        {/* Desktop nav */}
+        {isLoggedIn && (
+          <nav className="cmx-nav">
+            {navItems.map(item => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) => `cmx-nav-link ${isActive ? 'cmx-nav-active' : ''}`}
+              >
+                {item.name}
+              </NavLink>
+            ))}
+          </nav>
+        )}
+
+        {/* Right side */}
+        <div className="cmx-actions">
           {isLoggedIn ? (
-            <div className="flex items-center space-x-4">
-              <div className="hidden md:block text-sm">
-                <span className="text-gray-700">Welcome, </span>
-                <span className="font-semibold text-blue-600">
-                  {user ? JSON.parse(user).firstName : 'User'}
-                </span>
+            <>
+              <div className="cmx-user">
+                <div className="cmx-avatar">{initials}</div>
+                <span className="cmx-user-name">{user?.firstName ?? 'Player'}</span>
               </div>
-              <button 
-                onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-300"
-              >
-                Logout
-              </button>
-            </div>
+              <button onClick={handleLogout} className="cmx-logout">Logout</button>
+            </>
           ) : (
-            <div className="flex space-x-3">
-              <Link 
-                to="/login" 
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-300"
-              >
-                Login
-              </Link>
-              <Link 
-                to="/register" 
-                className="bg-transparent border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-lg transition-colors duration-300"
-              >
-                Register
-              </Link>
+            <div className="cmx-auth-btns">
+              <Link to="/login" className="cmx-btn cmx-btn-ghost">Login</Link>
+              <Link to="/register" className="cmx-btn cmx-btn-gold">Get Started</Link>
             </div>
           )}
-        </div>
 
-        {/* Mobile menu button */}
-        <button 
-          className="md:hidden text-gray-700"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
-          </svg>
-        </button>
+          {/* Mobile hamburger */}
+          {isLoggedIn && (
+            <button
+              className="cmx-burger"
+              onClick={() => setIsMenuOpen(o => !o)}
+              aria-label="Toggle menu"
+              aria-expanded={isMenuOpen}
+            >
+              <span className={`cmx-burger-bar ${isMenuOpen ? 'cmx-bar-1' : ''}`} />
+              <span className={`cmx-burger-bar ${isMenuOpen ? 'cmx-bar-2' : ''}`} />
+              <span className={`cmx-burger-bar ${isMenuOpen ? 'cmx-bar-3' : ''}`} />
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="md:hidden bg-white border-t">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex flex-col space-y-3">
-              {navItems.map((item) => (
-                <Link 
-                  key={item.path} 
-                  to={item.path} 
-                  className="text-gray-700 hover:text-blue-600 font-medium py-2 transition-colors duration-300"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
+      {/* Mobile menu */}
+      {isLoggedIn && (
+        <div className={`cmx-mobile ${isMenuOpen ? 'cmx-mobile-open' : ''}`}>
+          <div className="cmx-mobile-user">
+            <div className="cmx-avatar cmx-avatar-lg">{initials}</div>
+            <div className="cmx-mobile-user-info">
+              <span className="cmx-mobile-name">{user?.firstName} {user?.lastName}</span>
+              {user?.email && <span className="cmx-mobile-email">{user.email}</span>}
             </div>
           </div>
+          <nav className="cmx-mobile-nav">
+            {navItems.map(item => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) => `cmx-mobile-link ${isActive ? 'cmx-mobile-active' : ''}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.name}
+                <span className="cmx-mobile-arrow">›</span>
+              </NavLink>
+            ))}
+          </nav>
+          <button onClick={handleLogout} className="cmx-mobile-logout">Logout</button>
         </div>
       )}
+
+      {/* Backdrop */}
+      {isMenuOpen && <div className="cmx-backdrop" onClick={() => setIsMenuOpen(false)} />}
     </header>
   );
 };

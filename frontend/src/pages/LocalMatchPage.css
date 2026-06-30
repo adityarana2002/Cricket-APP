@@ -1679,21 +1679,59 @@
    RESPONSIVE
    ═══════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 600px) {
-  .lm-hero { padding: 28px 16px 28px; }
-  .lm-tabs { padding: 16px 16px 0; }
-  .lm-grid { grid-template-columns: 1fr; padding: 16px; gap: 14px; }
-  .cf-wrap { margin: 16px; border-radius: 16px; }
-  .cf-section { padding: 18px 18px 0; }
-  .cf-actions { padding: 16px 18px 20px; }
-  .cf-header { padding: 16px 18px; }
+  .lm-hero { padding: 26px 16px 24px; }
+  .lm-hero-inner { gap: 14px; }
+  .lm-hero-btns { width: 100%; }
+  .lm-hero-btns .lm-btn-primary, .lm-hero-btns .lm-btn-outline { flex: 1; justify-content: center; }
+  .lm-tabs { padding: 14px 14px 0; gap: 5px; }
+  .lm-tab { padding: 8px 13px; font-size: 0.8rem; }
+  .lm-grid { grid-template-columns: 1fr; padding: 14px; gap: 14px; }
+  .cf-wrap { margin: 14px; border-radius: 16px; }
+  .cf-section { padding: 18px 16px 0; }
+  .cf-actions { padding: 16px 16px 20px; }
+  .cf-header { padding: 16px; }
   .cf-teams-row { gap: 8px; }
   .cf-vs-diamond { width: 34px; height: 34px; }
+  .cf-avatar { width: 60px; height: 60px; font-size: 1.1rem; }
   .cf-venue-row { flex-direction: column; gap: 12px; }
+  .cf-format-pill { padding: 8px 16px; }
   .mc-scoreboard { padding: 12px 14px 8px; }
   .sc-sh-big-score { font-size: 1.65rem; }
   .lm-hero-title { font-size: 1.7rem; }
   .cs-bat-cols { grid-template-columns: 1fr 30px 26px 22px 22px 42px; }
   .cs-bowl-cols { grid-template-columns: 1fr 34px 26px 22px 42px; }
+
+  /* Score modal — tighter on small screens */
+  .lm-modal-overlay { padding: 8px; }
+  .lm-modal { max-height: 94vh; border-radius: 16px; }
+  .lm-modal-header { padding: 16px 16px 12px; }
+  .sc-score-header { padding: 14px 14px 10px; }
+  .sc-scorecard, .sc-ball-entry, .sc-history-panel, .sc-cur-ov-strip,
+  .sc-live-panel, .sc-innings-bar, .wm-readonly-note, .wm-chase, .wm-result-banner, .wm-footer {
+    margin-left: 14px; margin-right: 14px;
+  }
+  .sc-innings-bar { padding-left: 14px; padding-right: 14px; }
+  .sc-rate-item { padding: 8px 6px; }
+  .sc-rate-val { font-size: 0.92rem; }
+
+  /* Ball-entry buttons: keep all reachable without overflow */
+  .sc-run-row { gap: 6px; }
+  .sc-run-btn { min-width: 40px; padding: 11px 4px; font-size: 0.85rem; }
+  .sc-wicket, .sc-wide, .sc-noball { padding: 11px 10px; }
+
+  /* Winner pick stacks comfortably */
+  .sc-winner-pick { gap: 10px; }
+  .sc-wp-avatar { width: 46px; height: 46px; }
+}
+
+/* Extra-small phones */
+@media (max-width: 380px) {
+  .sc-run-btn { min-width: 34px; padding: 10px 2px; font-size: 0.8rem; }
+  .sc-run-row { gap: 5px; }
+  .sc-sh-big-score { font-size: 1.5rem; }
+  .sc-sh-avatar { width: 34px; height: 34px; }
+  .mc-avatar { width: 48px; height: 48px; }
+  .lm-hero-title { font-size: 1.5rem; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -2293,3 +2331,111 @@
 .lm-page[data-theme="light"] .win-meta-pill { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.09); color: #64748b; }
 .lm-page[data-theme="light"] .win-btn-close-x { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); color: #64748b; }
 .lm-page[data-theme="light"] .win-btn-close-x:hover { color: #334155; background: rgba(0,0,0,0.08); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   OWNERSHIP / WATCH MODE / TIE  (added)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Match-card action buttons for non-owners */
+.mc-btn-watch {
+  background: rgba(6,182,212,0.1);
+  color: #22d3ee;
+  border: 1px solid rgba(6,182,212,0.3);
+}
+.mc-btn-watch:hover { background: rgba(6,182,212,0.18); }
+.mc-btn-locked {
+  background: rgba(255,255,255,0.04);
+  color: #475569;
+  border: 1px solid rgba(255,255,255,0.08);
+  cursor: not-allowed;
+}
+
+/* Tie banner on match card */
+.mc-winner.mc-tie {
+  background: linear-gradient(135deg, rgba(6,182,212,0.1), rgba(99,102,241,0.08));
+  border-color: rgba(6,182,212,0.25);
+  color: #22d3ee;
+}
+
+/* Completed-scorecard tie banner */
+.sc-tie-banner {
+  background: linear-gradient(135deg, rgba(6,182,212,0.12), rgba(99,102,241,0.08)) !important;
+  border-color: rgba(6,182,212,0.28) !important;
+  color: #22d3ee !important;
+}
+
+/* Manual declare — "Match Tied" option */
+.sc-tie-option {
+  width: 100%;
+  padding: 12px;
+  background: rgba(6,182,212,0.07);
+  border: 2px solid rgba(6,182,212,0.22);
+  color: #22d3ee;
+  border-radius: 12px;
+  font-size: 0.86rem; font-weight: 700;
+  cursor: pointer; transition: all 0.16s;
+}
+.sc-tie-option:hover { background: rgba(6,182,212,0.13); border-color: rgba(6,182,212,0.4); }
+.sc-tie-picked {
+  border-color: #06b6d4 !important;
+  background: rgba(6,182,212,0.14) !important;
+  box-shadow: 0 0 22px rgba(6,182,212,0.16);
+}
+
+/* Win-celebration tie variant */
+.win-tie .win-card { border-color: rgba(6,182,212,0.45); }
+.win-tie .win-badge {
+  background: linear-gradient(135deg, rgba(6,182,212,0.18), rgba(99,102,241,0.1));
+  border-color: rgba(6,182,212,0.4);
+  color: #22d3ee;
+}
+.win-tie .win-team-name {
+  background: linear-gradient(135deg, #22d3ee 0%, #818cf8 60%, #a855f7 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+/* Watch (read-only) modal */
+.wm-readonly-note {
+  margin: 12px 20px;
+  padding: 9px 14px;
+  background: rgba(6,182,212,0.08);
+  border: 1px solid rgba(6,182,212,0.22);
+  border-radius: 10px;
+  color: #22d3ee;
+  font-size: 0.78rem; font-weight: 600;
+  text-align: center;
+}
+.wm-chase {
+  margin: 10px 20px;
+  padding: 11px 16px;
+  background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(99,102,241,0.07));
+  border: 1px solid rgba(245,158,11,0.22);
+  border-radius: 10px;
+  color: #f59e0b;
+  font-size: 0.84rem; font-weight: 700;
+  text-align: center;
+}
+.wm-result-banner {
+  margin: 14px 20px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(99,102,241,0.08));
+  border: 1px solid rgba(245,158,11,0.28);
+  border-radius: 12px;
+  color: #f59e0b;
+  font-size: 0.95rem; font-weight: 800;
+  text-align: center;
+}
+.wm-footer {
+  display: flex; justify-content: center;
+  padding: 4px 20px 20px;
+}
+.wm-updated {
+  font-size: 0.72rem; color: #475569; font-weight: 500;
+}
+
+/* Light-theme overrides for the added pieces */
+.lm-page[data-theme="light"] .mc-btn-locked { background: rgba(0,0,0,0.04); color: #94a3b8; border-color: rgba(0,0,0,0.1); }
+.lm-page[data-theme="light"] .mc-winner.mc-tie { color: #0891b2; }
+.lm-page[data-theme="light"] .wm-readonly-note { background: rgba(6,182,212,0.07); color: #0891b2; }
+.lm-page[data-theme="light"] .wm-updated { color: #94a3b8; }
+.lm-page[data-theme="light"] .sc-tie-option { color: #0891b2; }

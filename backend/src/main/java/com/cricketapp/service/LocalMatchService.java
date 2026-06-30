@@ -7,6 +7,7 @@ import com.cricketapp.entity.*;
 import com.cricketapp.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,6 +77,7 @@ public class LocalMatchService {
         match.setOversPerBowler(request.getOversPerBowler());
         match.setBallType(request.getBallType() != null ? request.getBallType() : "Tennis");
         match.setMatchCode(generateUniqueMatchCode());
+        match.setCreatedByEmail(userEmail);
 
         Match saved = matchRepository.save(match);
         log.info("Local match created: id={}, {} vs {}", saved.getId(), team1.getName(), team2.getName());
@@ -83,9 +85,10 @@ public class LocalMatchService {
     }
 
     @Transactional
-    public LocalMatchResponseDTO startMatch(Long matchId) {
+    public LocalMatchResponseDTO startMatch(Long matchId, String userEmail) {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new RuntimeException("Match not found with id: " + matchId));
+        verifyOwner(match, userEmail);
         if (!"UPCOMING".equals(match.getStatus())) {
             throw new RuntimeException("Only UPCOMING matches can be started");
         }
@@ -94,9 +97,10 @@ public class LocalMatchService {
     }
 
     @Transactional
-    public LocalMatchResponseDTO updateScore(Long matchId, UpdateScoreRequest request) {
+    public LocalMatchResponseDTO updateScore(Long matchId, UpdateScoreRequest request, String userEmail) {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new RuntimeException("Match not found with id: " + matchId));
+        verifyOwner(match, userEmail);
         if (!"LIVE".equals(match.getStatus())) {
             throw new RuntimeException("Score can only be updated for LIVE matches");
         }
@@ -113,9 +117,10 @@ public class LocalMatchService {
     }
 
     @Transactional
-    public LocalMatchResponseDTO switchInnings(Long matchId) {
+    public LocalMatchResponseDTO switchInnings(Long matchId, String userEmail) {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new RuntimeException("Match not found with id: " + matchId));
+        verifyOwner(match, userEmail);
         if (!"LIVE".equals(match.getStatus())) {
             throw new RuntimeException("Only LIVE matches can switch innings");
         }
@@ -144,17 +149,36 @@ public class LocalMatchService {
     }
 
     @Transactional
-    public LocalMatchResponseDTO endMatch(Long matchId, Long winnerTeamId) {
+    public LocalMatchResponseDTO endMatch(Long matchId, Long winnerTeamId, String userEmail) {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new RuntimeException("Match not found with id: " + matchId));
+        verifyOwner(match, userEmail);
         if (!"LIVE".equals(match.getStatus())) {
             throw new RuntimeException("Only LIVE matches can be ended");
         }
-        Team winner = teamRepository.findById(winnerTeamId)
-                .orElseThrow(() -> new RuntimeException("Winner team not found with id: " + winnerTeamId));
         match.setStatus("COMPLETED");
-        match.setWinner(winner);
+        if (winnerTeamId == null) {
+            // No winner team supplied → the match was a TIE
+            match.setWinner(null);
+            log.info("Match {} ended in a TIE", matchId);
+        } else {
+            Team winner = teamRepository.findById(winnerTeamId)
+                    .orElseThrow(() -> new RuntimeException("Winner team not found with id: " + winnerTeamId));
+            match.setWinner(winner);
+        }
         return toDTO(matchRepository.save(match));
+    }
+
+    /**
+     * Ensures the acting user owns this match. Matches created before ownership
+     * tracking existed (null createdByEmail) remain editable by any authenticated
+     * user so legacy data is never locked out.
+     */
+    private void verifyOwner(Match match, String userEmail) {
+        String owner = match.getCreatedByEmail();
+        if (owner != null && !owner.equalsIgnoreCase(userEmail)) {
+            throw new AccessDeniedException("Only the match creator can score this match");
+        }
     }
 
     public LocalMatchResponseDTO getLocalMatch(Long matchId) {
@@ -258,6 +282,8 @@ public class LocalMatchService {
                 .nonStriker(match.getNonStriker())
                 .currentBowler(match.getCurrentBowler())
                 .winnerName(match.getWinner() != null ? match.getWinner().getName() : null)
+                .isTie("COMPLETED".equals(match.getStatus()) && match.getWinner() == null)
+                .createdByEmail(match.getCreatedByEmail())
                 .matchDate(match.getMatchDate())
                 .createdAt(match.getCreatedAt())
                 .updatedAt(match.getUpdatedAt())

@@ -1,0 +1,240 @@
+/* ═══════════════════════════════════════════════════════════════
+   CricMax — Cricket launch splash animation
+   ═══════════════════════════════════════════════════════════════ */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 38%, #0a2a5e 0%, transparent 62%),
+    linear-gradient(160deg, #001230 0%, #00224f 45%, #001026 100%);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  opacity: 1;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+  cursor: pointer;
+}
+
+.splash-leaving {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* ── Ambient stadium light beams ── */
+.splash-beam {
+  position: absolute;
+  top: -30%;
+  width: 60%;
+  height: 130%;
+  pointer-events: none;
+  filter: blur(8px);
+  opacity: 0;
+  animation: splashBeam 2.8s ease-out forwards;
+}
+.splash-beam-1 {
+  left: -10%;
+  background: linear-gradient(110deg, transparent 40%, rgba(96, 165, 250, 0.10) 50%, transparent 60%);
+  transform: rotate(-12deg);
+  animation-delay: 0.1s;
+}
+.splash-beam-2 {
+  right: -10%;
+  background: linear-gradient(-110deg, transparent 40%, rgba(212, 175, 55, 0.10) 50%, transparent 60%);
+  transform: rotate(12deg);
+  animation-delay: 0.3s;
+}
+@keyframes splashBeam {
+  0%   { opacity: 0; }
+  40%  { opacity: 1; }
+  100% { opacity: 0.55; }
+}
+
+/* ── Central glow ── */
+.splash-glow {
+  position: absolute;
+  top: 36%;
+  left: 50%;
+  width: 360px;
+  height: 360px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.14) 0%, transparent 62%);
+  opacity: 0;
+  animation: splashGlowPulse 2.6s ease-in-out forwards;
+}
+@keyframes splashGlowPulse {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.7); }
+  45%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.05); }
+}
+
+/* ── SVG stage ── */
+.splash-stage {
+  position: relative;
+  width: min(78vw, 320px);
+  margin-bottom: 4px;
+}
+.splash-svg { width: 100%; height: auto; display: block; }
+
+/* Pitch / crease */
+.splash-pitch {
+  fill: rgba(0, 0, 0, 0.35);
+  filter: blur(3px);
+  opacity: 0;
+  animation: splashFadeIn 0.6s ease 0.2s forwards;
+}
+.splash-crease {
+  stroke: rgba(255, 255, 255, 0.22);
+  stroke-width: 1.4;
+  stroke-dasharray: 150;
+  stroke-dashoffset: 150;
+  animation: splashDraw 0.7s ease 0.25s forwards;
+}
+@keyframes splashDraw { to { stroke-dashoffset: 0; } }
+@keyframes splashFadeIn { to { opacity: 1; } }
+
+/* Stumps rise up */
+.splash-stumps { transform-origin: 152px 174px; }
+.splash-stump {
+  opacity: 0;
+  transform: translateY(16px);
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: splashStumpRise 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.splash-stump:nth-child(1) { animation-delay: 0.35s; }
+.splash-stump:nth-child(2) { animation-delay: 0.45s; }
+.splash-stump:nth-child(3) { animation-delay: 0.55s; }
+@keyframes splashStumpRise {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Stumps wobble on impact */
+.splash-stumps {
+  animation: splashStumpWobble 0.5s ease 1.32s;
+}
+@keyframes splashStumpWobble {
+  0%, 100% { transform: rotate(0deg); }
+  25%      { transform: rotate(2.2deg); }
+  60%      { transform: rotate(-1.4deg); }
+  80%      { transform: rotate(0.6deg); }
+}
+
+/* Bails — sit on top, then fly off at impact (~1.32s) */
+.splash-bail {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation:
+    splashFadeIn 0.3s ease 0.55s forwards,
+    splashBailFly 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 1.32s forwards;
+}
+.splash-bail-1 { --bx: 30px; --by: -52px; --br: -240deg; }
+.splash-bail-2 { --bx: 52px; --by: -34px; --br: 300deg; }
+@keyframes splashBailFly {
+  to { transform: translate(var(--bx), var(--by)) rotate(var(--br)); opacity: 0; }
+}
+
+/* Impact spark */
+.splash-spark {
+  stroke: #ffd27a;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: splashSpark 0.45s ease-out 1.3s;
+}
+@keyframes splashSpark {
+  0%   { opacity: 0; transform: scale(0.4); }
+  35%  { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+
+/* Cricket ball flies in and bowls the stumps */
+.splash-ball {
+  transform: translate(-150px, -70px) rotate(0deg);
+  opacity: 0;
+  animation: splashBallFly 1.35s cubic-bezier(0.45, 0.05, 0.55, 0.95) 0.45s forwards;
+}
+@keyframes splashBallFly {
+  0%   { transform: translate(-150px, -70px) rotate(0deg);   opacity: 0; }
+  12%  { opacity: 1; }
+  62%  { transform: translate(132px, 110px) rotate(560deg);  opacity: 1; }   /* impact */
+  78%  { transform: translate(150px, 96px) rotate(660deg);   opacity: 1; }   /* slight ricochet up */
+  100% { transform: translate(176px, 168px) rotate(820deg);  opacity: 0; }   /* drops away */
+}
+.splash-seam { opacity: 0.9; }
+
+/* ── Wordmark ── */
+.splash-brand {
+  position: relative;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(14px);
+  animation: splashBrandIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1.55s forwards;
+}
+.splash-name {
+  margin: 0;
+  font-size: clamp(2.2rem, 9vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, #F7DF82 0%, #D4AF37 48%, #ECC84A 75%, #D4AF37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: splashShimmer 2.4s ease-in-out 1.9s infinite alternate;
+}
+.splash-tag {
+  margin: 6px 0 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: rgba(212, 175, 55, 0.62);
+}
+@keyframes splashBrandIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes splashShimmer {
+  0%   { filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.25)); }
+  100% { filter: drop-shadow(0 0 18px rgba(212, 175, 55, 0.55)); }
+}
+
+/* ── Loader dots ── */
+.splash-dots {
+  display: flex;
+  gap: 7px;
+  margin-top: 22px;
+  opacity: 0;
+  animation: splashFadeIn 0.5s ease 1.85s forwards;
+}
+.splash-dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #D4AF37;
+  animation: splashDot 1s ease-in-out infinite;
+}
+.splash-dots span:nth-child(2) { animation-delay: 0.16s; }
+.splash-dots span:nth-child(3) { animation-delay: 0.32s; }
+@keyframes splashDot {
+  0%, 100% { opacity: 0.3; transform: translateY(0); }
+  50%      { opacity: 1;   transform: translateY(-5px); }
+}
+
+/* ── Reduced motion — show brand quickly, skip heavy motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .splash-beam, .splash-glow, .splash-ball, .splash-bail, .splash-spark,
+  .splash-stump, .splash-crease, .splash-pitch, .splash-stumps {
+    animation-duration: 0.01s !important;
+    animation-delay: 0s !important;
+  }
+  .splash-brand { animation-delay: 0.1s; }
+  .splash-name { animation: none; }
+}

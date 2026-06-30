@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Layout/Header';
-import Footer from './components/Layout/Footer';
+import SplashScreen from './components/SplashScreen';
 import LoginPage from './components/Auth/LoginPage';
 import RegisterPage from './components/Auth/RegisterPage';
 import HomePage from './pages/HomePage';
@@ -22,8 +22,20 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ element }) => {
 function App() {
   const isLoggedIn = !!localStorage.getItem('token');
 
+  // Show the cricket launch animation once per app launch (each fresh open /
+  // PWA relaunch starts a new session). In-session refreshes skip it.
+  const [showSplash, setShowSplash] = useState<boolean>(() => {
+    try { return !sessionStorage.getItem('cmx_splashShown'); } catch { return true; }
+  });
+
+  const handleSplashDone = () => {
+    try { sessionStorage.setItem('cmx_splashShown', '1'); } catch { /* ignore */ }
+    setShowSplash(false);
+  };
+
   return (
     <Router>
+      {showSplash && <SplashScreen onFinish={handleSplashDone} />}
       <div className="app-container">
         {isLoggedIn && <Header />}
         <main className="app-main">
@@ -37,7 +49,6 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
-        {isLoggedIn && <Footer />}
       </div>
     </Router>
   );

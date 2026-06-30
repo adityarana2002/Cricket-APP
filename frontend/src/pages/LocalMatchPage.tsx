@@ -201,8 +201,10 @@ const CompletedScorecard: React.FC<{ match: LocalMatch; onClose: () => void }> =
           </div>
         </div>
 
-        {match.winnerName && (
+        {match.winnerName ? (
           <div className="sc-winner-banner">🏆 {match.winnerName} won the match!</div>
+        ) : (
+          <div className="sc-winner-banner sc-tie-banner">🤝 Match Tied — both teams finished level!</div>
         )}
 
         <div className="sc-meta-row">
@@ -254,47 +256,83 @@ interface WinCelebrationProps {
   onClose: () => void;
 }
 const WinCelebration: React.FC<WinCelebrationProps> = ({ match, onViewScorecard, onClose }) => {
+  const isTie = match.isTie || !match.winnerName;
+  const t1Score = `${match.team1Score}/${match.team1Wickets}`;
+  const t2Score = `${match.team2Score}/${match.team2Wickets}`;
+
   const isTeam1Winner = match.winnerName === match.team1Name;
   const winScore  = `${isTeam1Winner ? match.team1Score : match.team2Score}/${isTeam1Winner ? match.team1Wickets : match.team2Wickets}`;
   const loserName = isTeam1Winner ? match.team2Name : match.team1Name;
   const loseScore = `${isTeam1Winner ? match.team2Score : match.team1Score}/${isTeam1Winner ? match.team2Wickets : match.team1Wickets}`;
+
   return (
-    <div className="win-overlay" onClick={onClose}>
-      <div className="win-confetti-wrap" aria-hidden="true">
-        {_confettiItems.map((c, i) => (
-          <span key={i} className="win-confetti" style={{ left: c.left, width: c.width, height: c.height,
-            background: c.color, animationDuration: c.duration, animationDelay: c.delay }} />
-        ))}
-      </div>
+    <div className={`win-overlay ${isTie ? 'win-tie' : ''}`} onClick={onClose}>
+      {!isTie && (
+        <div className="win-confetti-wrap" aria-hidden="true">
+          {_confettiItems.map((c, i) => (
+            <span key={i} className="win-confetti" style={{ left: c.left, width: c.width, height: c.height,
+              background: c.color, animationDuration: c.duration, animationDelay: c.delay }} />
+          ))}
+        </div>
+      )}
       <div className="win-card" onClick={e => e.stopPropagation()}>
         <div className="win-stars" aria-hidden="true">
           {['★','✦','✶','★','✦'].map((s, i) => <span key={i} className={`win-star win-star-${i}`}>{s}</span>)}
         </div>
         <div className="win-trophy-wrap">
-          <div className="win-trophy">🏆</div>
+          <div className="win-trophy">{isTie ? '🤝' : '🏆'}</div>
           <div className="win-glow" />
         </div>
-        <div className="win-badge-row"><span className="win-badge">MATCH WINNER</span></div>
-        <h1 className="win-team-name">{match.winnerName}</h1>
-        <p className="win-tagline">Clinched the victory!</p>
-        <div className="win-scoreboard">
-          <div className="win-sc-team win-sc-winner">
-            <div className="win-sc-avatar win-av-gold">{getInitials(match.winnerName || '')}</div>
-            <div className="win-sc-info">
-              <div className="win-sc-name">{match.winnerName}</div>
-              <div className="win-sc-score">{winScore}</div>
+
+        {isTie ? (
+          <>
+            <div className="win-badge-row"><span className="win-badge">MATCH TIED</span></div>
+            <h1 className="win-team-name">It's a Tie!</h1>
+            <p className="win-tagline">Both teams finished level — what a contest!</p>
+            <div className="win-scoreboard">
+              <div className="win-sc-team">
+                <div className="win-sc-avatar win-av-gold">{getInitials(match.team1Name)}</div>
+                <div className="win-sc-info">
+                  <div className="win-sc-name">{match.team1Name}</div>
+                  <div className="win-sc-score">{t1Score}</div>
+                </div>
+              </div>
+              <div className="win-sc-vs">TIE</div>
+              <div className="win-sc-team">
+                <div className="win-sc-avatar win-av-gold">{getInitials(match.team2Name)}</div>
+                <div className="win-sc-info">
+                  <div className="win-sc-name">{match.team2Name}</div>
+                  <div className="win-sc-score">{t2Score}</div>
+                </div>
+              </div>
             </div>
-            <span className="win-sc-crown">👑</span>
-          </div>
-          <div className="win-sc-vs">VS</div>
-          <div className="win-sc-team win-sc-loser">
-            <div className="win-sc-avatar win-av-grey">{getInitials(loserName)}</div>
-            <div className="win-sc-info">
-              <div className="win-sc-name">{loserName}</div>
-              <div className="win-sc-score">{loseScore}</div>
+          </>
+        ) : (
+          <>
+            <div className="win-badge-row"><span className="win-badge">MATCH WINNER</span></div>
+            <h1 className="win-team-name">{match.winnerName}</h1>
+            <p className="win-tagline">Clinched the victory!</p>
+            <div className="win-scoreboard">
+              <div className="win-sc-team win-sc-winner">
+                <div className="win-sc-avatar win-av-gold">{getInitials(match.winnerName || '')}</div>
+                <div className="win-sc-info">
+                  <div className="win-sc-name">{match.winnerName}</div>
+                  <div className="win-sc-score">{winScore}</div>
+                </div>
+                <span className="win-sc-crown">👑</span>
+              </div>
+              <div className="win-sc-vs">VS</div>
+              <div className="win-sc-team win-sc-loser">
+                <div className="win-sc-avatar win-av-grey">{getInitials(loserName)}</div>
+                <div className="win-sc-info">
+                  <div className="win-sc-name">{loserName}</div>
+                  <div className="win-sc-score">{loseScore}</div>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </>
+        )}
+
         <div className="win-meta">
           {match.matchFormat && <span className="win-meta-pill">{match.matchFormat}</span>}
           {match.location && <span className="win-meta-pill">📍 {match.location}</span>}
@@ -326,7 +364,7 @@ const ScoreModal: React.FC<ScoreModalProps> = ({ match, onClose, onUpdate, onEnd
   const [switching, setSwitching] = useState(false);
   const [error, setError] = useState('');
   const [showEndConfirm, setShowEndConfirm] = useState(false);
-  const [winner, setWinner] = useState<'team1' | 'team2' | ''>('');
+  const [winner, setWinner] = useState<'team1' | 'team2' | 'tie' | ''>('');
   const [scoreHistory, setScoreHistory] = useState<UpdateScoreRequest[]>([]);
   const [eventLog, setEventLog] = useState<BallEvent[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -560,8 +598,8 @@ const ScoreModal: React.FC<ScoreModalProps> = ({ match, onClose, onUpdate, onEnd
     // Fire score sync in background — UI already updated optimistically
     const saveProm = saveScore(s, newB1, newB2, newBs, true);
 
-    // Helper: save innings history and call endMatch
-    const autoEndMatch = async (winId: number, bowlerSnap: BowlerStats, batScore2: number) => {
+    // Helper: save innings history and call endMatch. winId null → declared a TIE.
+    const autoEndMatch = async (winId: number | null, bowlerSnap: BowlerStats, batScore2: number) => {
       await saveProm;
       const finalBowlerLedger = mergeIntoBowlerLedger(bowlerLedger, bowlerSnap);
       const endLedgerNames = new Set(batterLedger.map(b => b.name));
@@ -596,8 +634,13 @@ const ScoreModal: React.FC<ScoreModalProps> = ({ match, onClose, onUpdate, onEnd
       // Batting team chased the target — batting team wins
       await autoEndMatch(isBatTeam1 ? match.team1Id : match.team2Id, newBs, newBatScore);
     } else if (newOversUp && !isFirstInnings) {
-      // Overs exhausted in 2nd innings, target not chased — bowling team wins
-      await autoEndMatch(isBatTeam1 ? match.team2Id : match.team1Id, newBs, newBatScore);
+      // Overs exhausted in 2nd innings, target not chased.
+      // Scores level (batting total == first-innings total) → TIE, else bowling team wins.
+      const isTieResult = target !== null && newBatScore === target - 1;
+      await autoEndMatch(
+        isTieResult ? null : (isBatTeam1 ? match.team2Id : match.team1Id),
+        newBs, newBatScore,
+      );
     }
   };
 
@@ -675,7 +718,10 @@ const ScoreModal: React.FC<ScoreModalProps> = ({ match, onClose, onUpdate, onEnd
       localStorage.removeItem(`crickmax_inn1_${match.id}`);
       try {
         setSaving(true);
-        const winId = isBatTeam1 ? match.team2Id : match.team1Id;
+        // Scores level when the chasing side is bowled out one run short of the
+        // target (i.e. exactly the first-innings total) → TIE; else bowling team wins.
+        const isTieResult = target !== null && newBatScore2 === target - 1;
+        const winId = isTieResult ? null : (isBatTeam1 ? match.team2Id : match.team1Id);
         const ended = await localMatchService.endMatch(match.id, winId);
         onEndMatch(ended);
         onClose();
@@ -753,7 +799,7 @@ const ScoreModal: React.FC<ScoreModalProps> = ({ match, onClose, onUpdate, onEnd
       localStorage.setItem(`crickmax_history_${match.id}`, JSON.stringify(history));
       localStorage.removeItem(`crickmax_inn1_${match.id}`);
 
-      const winId = winner === 'team1' ? match.team1Id : match.team2Id;
+      const winId = winner === 'tie' ? null : (winner === 'team1' ? match.team1Id : match.team2Id);
       const ended = await localMatchService.endMatch(match.id, winId);
       onEndMatch(ended); onClose();
     } catch (err: any) {
@@ -912,78 +958,6 @@ const ScoreModal: React.FC<ScoreModalProps> = ({ match, onClose, onUpdate, onEnd
               )}
             </div>
 
-            {/* ── Live player panel ── */}
-            <div className="sc-live-panel">
-              {/* Batters */}
-              <div className="sc-lp-batters">
-                {[strikerStats, nonStrikerStats].map((b, idx) => (
-                  <div key={idx} className={`sc-lp-batter ${b.isStriker ? 'sc-lp-striker' : 'sc-lp-ns'}`}>
-                    <div className="sc-lp-bat-left">
-                      <div className="sc-lp-name-row">
-                        {b.isStriker && <span className="sc-lp-bat-icon">🏏</span>}
-                        <span className="sc-lp-name">{b.name || (b.isStriker ? 'Striker' : 'Non-Striker')}</span>
-                        {b.isStriker && <span className="sc-lp-star">*</span>}
-                        {!b.isStriker && <span className="sc-lp-ns-tag">non-striker</span>}
-                      </div>
-                      <div className="sc-lp-bat-stats">
-                        <span className="sc-lp-runs">{b.runs}</span>
-                        <span className="sc-lp-divider">·</span>
-                        <span className="sc-lp-balls">{b.balls}b</span>
-                        {b.fours > 0 && <><span className="sc-lp-divider">·</span><span className="sc-lp-four">{b.fours}×4</span></>}
-                        {b.sixes > 0 && <><span className="sc-lp-divider">·</span><span className="sc-lp-six">{b.sixes}×6</span></>}
-                      </div>
-                    </div>
-                    <div className="sc-lp-sr">{fmtSR(b.runs, b.balls)}</div>
-                  </div>
-                ))}
-              </div>
-              {/* Bowler */}
-              <div className="sc-lp-bowler">
-                <div className="sc-lp-bowl-left">
-                  <div className="sc-lp-name-row">
-                    <span className="sc-lp-bowl-icon">🎯</span>
-                    <span className="sc-lp-name">{bowlerStats.name || 'Bowler'}</span>
-                    <span className="sc-lp-ns-tag">bowling</span>
-                  </div>
-                  <div className="sc-lp-bat-stats">
-                    <span className="sc-lp-overs">{bowlerStats.overs}.{bowlerStats.balls} ov</span>
-                    <span className="sc-lp-divider">·</span>
-                    <span>{bowlerStats.runs}r</span>
-                    {bowlerStats.wickets > 0 && <><span className="sc-lp-divider">·</span><span className="sc-lp-wkt">{bowlerStats.wickets}w</span></>}
-                  </div>
-                </div>
-                <div className="sc-lp-econ">{fmtEcon(bowlerStats.runs, bowlerStats.overs, bowlerStats.balls)}</div>
-              </div>
-            </div>
-
-            {/* ── Current over ball strip ── */}
-            {setupDone && (
-              <div className="sc-cur-ov-strip">
-                <div className="sc-cos-meta">
-                  <span className="sc-cos-ov-num">OV {curOver + 1}</span>
-                  <span className="sc-cos-runs">{currentOvRuns} runs</span>
-                </div>
-                <div className="sc-cos-balls">
-                  {currentOvBalls.map((ball, i) => (
-                    <span
-                      key={i}
-                      className={`sc-cos-ball sc-cos-${ball.type} ${i === currentOvBalls.length - 1 ? 'sc-cos-last' : ''}`}
-                    >
-                      {ball.display}
-                    </span>
-                  ))}
-                  {Array.from({ length: Math.max(0, 6 - legalInCurOv) }).map((_, i) => (
-                    <span key={`e${i}`} className="sc-cos-ball sc-cos-empty">·</span>
-                  ))}
-                </div>
-                {lastBall && (
-                  <div className={`sc-cos-last-badge sc-cos-badge-${lastBall.type}`}>
-                    {lastBall.type === 'wicket' ? 'WICKET!' : lastBall.type === 'four' ? 'FOUR!' : lastBall.type === 'six' ? 'SIX!' : lastBall.type === 'wide' ? 'WIDE' : lastBall.type === 'noball' ? 'NO BALL' : lastBall.runs === 0 ? 'DOT' : `${lastBall.runs} RUN${lastBall.runs !== 1 ? 'S' : ''}`}
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* Professional scorecard */}
             <div className="sc-scorecard">
               {/* Batters table */}
@@ -1098,7 +1072,35 @@ const ScoreModal: React.FC<ScoreModalProps> = ({ match, onClose, onUpdate, onEnd
               </div>
             )}
 
-            {/* Over-by-over history */}
+            {/* ── Current over ball strip (relocated above the run chart) ── */}
+            {setupDone && !inningsOver && (
+              <div className="sc-cur-ov-strip">
+                <div className="sc-cos-meta">
+                  <span className="sc-cos-ov-num">OV {curOver + 1}</span>
+                  <span className="sc-cos-runs">{currentOvRuns} runs</span>
+                </div>
+                <div className="sc-cos-balls">
+                  {currentOvBalls.map((ball, i) => (
+                    <span
+                      key={i}
+                      className={`sc-cos-ball sc-cos-${ball.type} ${i === currentOvBalls.length - 1 ? 'sc-cos-last' : ''}`}
+                    >
+                      {ball.display}
+                    </span>
+                  ))}
+                  {Array.from({ length: Math.max(0, 6 - legalInCurOv) }).map((_, i) => (
+                    <span key={`e${i}`} className="sc-cos-ball sc-cos-empty">·</span>
+                  ))}
+                </div>
+                {lastBall && (
+                  <div className={`sc-cos-last-badge sc-cos-badge-${lastBall.type}`}>
+                    {lastBall.type === 'wicket' ? 'WICKET!' : lastBall.type === 'four' ? 'FOUR!' : lastBall.type === 'six' ? 'SIX!' : lastBall.type === 'wide' ? 'WIDE' : lastBall.type === 'noball' ? 'NO BALL' : lastBall.runs === 0 ? 'DOT' : `${lastBall.runs} RUN${lastBall.runs !== 1 ? 'S' : ''}`}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Over-by-over history (run chart) */}
             {eventLog.length > 0 && (
               <div className="sc-history-panel">
                 <div className="sc-history-hdr" onClick={() => setShowHistory(s => !s)}>
@@ -1270,10 +1272,19 @@ const ScoreModal: React.FC<ScoreModalProps> = ({ match, onClose, onUpdate, onEnd
                 <div className="sc-wp-score">{score.team2Score ?? 0}/{score.team2Wickets ?? 0}</div>
               </div>
             </div>
-            {!winner && <p className="sc-pick-hint">Tap a team above to select winner</p>}
+            <button
+              className={`sc-tie-option ${winner === 'tie' ? 'sc-tie-picked' : ''}`}
+              onClick={() => setWinner('tie')}
+            >
+              🤝 Match Tied (no winner)
+            </button>
+            {!winner && <p className="sc-pick-hint">Tap a team above, or choose “Match Tied”</p>}
             <div className="sc-end-actions">
               <button className="sc-confirm-btn" onClick={handleEndMatch} disabled={!winner || saving}>
-                {saving ? 'Saving…' : winner ? `🏆 ${winner === 'team1' ? match.team1Name : match.team2Name} Wins!` : 'Select winner first'}
+                {saving ? 'Saving…'
+                  : winner === 'tie' ? '🤝 Declare Match Tied'
+                  : winner ? `🏆 ${winner === 'team1' ? match.team1Name : match.team2Name} Wins!`
+                  : 'Select a result first'}
               </button>
               <button className="sc-back-btn" onClick={() => setShowEndConfirm(false)}>← Back to Scoring</button>
             </div>
@@ -1284,16 +1295,157 @@ const ScoreModal: React.FC<ScoreModalProps> = ({ match, onClose, onUpdate, onEnd
   );
 };
 
+// ─── Watch Modal (read-only live viewer for non-owners) ───────────────────────
+const WatchModal: React.FC<{ match: LocalMatch; onClose: () => void }> = ({ match: initial, onClose }) => {
+  const [match, setMatch] = useState<LocalMatch>(initial);
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+
+  // Poll the live score every 5s so spectators see updates in near real time
+  useEffect(() => {
+    let active = true;
+    const poll = async () => {
+      try {
+        const fresh = await localMatchService.getLocalMatch(initial.id);
+        if (active) { setMatch(fresh); setUpdatedAt(new Date()); }
+      } catch { /* keep showing last known score */ }
+    };
+    poll();
+    const iv = setInterval(poll, 5000);
+    return () => { active = false; clearInterval(iv); };
+  }, [initial.id]);
+
+  const isBatTeam1 = match.battingTeam === match.team1Name;
+  const batScore   = isBatTeam1 ? match.team1Score : match.team2Score;
+  const batWkts    = isBatTeam1 ? match.team1Wickets : match.team2Wickets;
+  const target     = match.currentInnings === 2
+    ? (isBatTeam1 ? match.team2Score + 1 : match.team1Score + 1) : null;
+  const runsNeeded = target !== null ? Math.max(0, target - batScore) : null;
+  const totalBalls = match.currentOver * 6 + match.currentBall;
+  const crr        = totalBalls > 0 ? ((batScore / totalBalls) * 6).toFixed(2) : '—';
+  const isOver     = match.status === 'COMPLETED';
+
+  return (
+    <div className="lm-modal-overlay" onClick={onClose}>
+      <div className="lm-modal sc-modal" onClick={e => e.stopPropagation()}>
+        <div className="lm-modal-header">
+          <div>
+            <h2 className="lm-modal-title">
+              {!isOver && <span className="live-dot" />}
+              {isOver ? 'Match Result' : 'Watching Live'}
+            </h2>
+            <p className="lm-modal-sub">{match.team1Name} vs {match.team2Name} · {match.matchFormat}</p>
+          </div>
+          <button className="lm-modal-close" onClick={onClose}>✕</button>
+        </div>
+
+        <div className="wm-readonly-note">👁 View only — only the match creator can update the score</div>
+
+        <div className="sc-score-header">
+          <div className="sc-sh-team">
+            <div className="sc-sh-avatar sc-avatar-bat">{getInitials(match.battingTeam)}</div>
+            <div className="sc-sh-info">
+              <div className="sc-sh-name">{match.battingTeam}</div>
+              <div className="sc-sh-sub">Batting</div>
+            </div>
+          </div>
+          <div className="sc-sh-center">
+            <div className="sc-sh-big-score">{batScore}<span className="sc-sh-sep">/</span>{batWkts}</div>
+            <div className="sc-sh-overs">{match.currentOver}.{match.currentBall}{match.totalOvers ? `/${match.totalOvers}` : ''} ov</div>
+            {target && <div className="sc-sh-target">Tgt {target}</div>}
+          </div>
+          <div className="sc-sh-team sc-sh-right">
+            <div className="sc-sh-info sc-sh-right-info">
+              <div className="sc-sh-name">{match.bowlingTeam}</div>
+              <div className="sc-sh-sub">Bowling</div>
+            </div>
+            <div className="sc-sh-avatar sc-avatar-bwl">{getInitials(match.bowlingTeam)}</div>
+          </div>
+        </div>
+
+        <div className="sc-rate-bar">
+          <div className="sc-rate-item">
+            <span className="sc-rate-val">{crr}</span>
+            <span className="sc-rate-lbl">CRR</span>
+          </div>
+          {runsNeeded !== null && !isOver && (
+            <div className="sc-rate-item sc-rate-need">
+              <span className="sc-rate-val">{runsNeeded}</span>
+              <span className="sc-rate-lbl">Needed</span>
+            </div>
+          )}
+        </div>
+
+        {!isOver && (
+          <div className="sc-live-panel">
+            <div className="sc-lp-batters">
+              <div className="sc-lp-batter sc-lp-striker">
+                <div className="sc-lp-bat-left">
+                  <div className="sc-lp-name-row">
+                    <span className="sc-lp-bat-icon">🏏</span>
+                    <span className="sc-lp-name">{match.striker || 'Striker'}</span>
+                    <span className="sc-lp-star">*</span>
+                  </div>
+                </div>
+              </div>
+              <div className="sc-lp-batter sc-lp-ns">
+                <div className="sc-lp-bat-left">
+                  <div className="sc-lp-name-row">
+                    <span className="sc-lp-name">{match.nonStriker || 'Non-striker'}</span>
+                    <span className="sc-lp-ns-tag">non-striker</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="sc-lp-bowler">
+              <div className="sc-lp-bowl-left">
+                <div className="sc-lp-name-row">
+                  <span className="sc-lp-bowl-icon">🎯</span>
+                  <span className="sc-lp-name">{match.currentBowler || 'Bowler'}</span>
+                  <span className="sc-lp-ns-tag">bowling</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!isOver && runsNeeded !== null && target !== null && (
+          <div className="wm-chase">
+            {match.battingTeam} need {runsNeeded} run{runsNeeded !== 1 ? 's' : ''} to win
+          </div>
+        )}
+
+        {isOver && (
+          <div className="wm-result-banner">
+            {match.winnerName ? `🏆 ${match.winnerName} won the match!` : '🤝 Match Tied!'}
+          </div>
+        )}
+
+        <div className="wm-footer">
+          {isOver
+            ? <span className="wm-updated">This match has ended</span>
+            : updatedAt && (
+                <span className="wm-updated">
+                  ⟳ Auto-refreshing · updated {updatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                </span>
+              )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ─── Match Card ───────────────────────────────────────────────────────────────
 interface MatchCardProps {
   match: LocalMatch;
   deleting: boolean;
+  canScore: boolean;
   onStart: () => void;
   onOpenScorecard: () => void;
+  onWatch: () => void;
   onDelete: () => void;
 }
 
-const MatchCard: React.FC<MatchCardProps> = ({ match, deleting, onStart, onOpenScorecard, onDelete }) => {
+const MatchCard: React.FC<MatchCardProps> = ({ match, deleting, canScore, onStart, onOpenScorecard, onWatch, onDelete }) => {
   const isLive = match.status === 'LIVE';
   const isDone = match.status === 'COMPLETED';
   const isUp = match.status === 'UPCOMING';
@@ -1357,9 +1509,11 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, deleting, onStart, onOpenS
         </div>
       </div>
 
-      {/* Winner banner */}
-      {isDone && match.winnerName && (
-        <div className="mc-winner">🏆 {match.winnerName} won!</div>
+      {/* Winner / tie banner */}
+      {isDone && (
+        match.winnerName
+          ? <div className="mc-winner">🏆 {match.winnerName} won!</div>
+          : <div className="mc-winner mc-tie">🤝 Match Tied!</div>
       )}
 
       {/* Meta */}
@@ -1381,16 +1535,22 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, deleting, onStart, onOpenS
 
       {/* Actions */}
       <div className="mc-actions">
-        {isUp && (
+        {isUp && canScore && (
           <button className="mc-btn mc-btn-start" onClick={onStart}>▶ Start Match</button>
         )}
-        {isLive && (
+        {isUp && !canScore && (
+          <button className="mc-btn mc-btn-locked" disabled>🔒 Owner only</button>
+        )}
+        {isLive && canScore && (
           <button className="mc-btn mc-btn-score" onClick={onOpenScorecard}>📊 Score Live</button>
+        )}
+        {isLive && !canScore && (
+          <button className="mc-btn mc-btn-watch" onClick={onWatch}>👁 Watch Live</button>
         )}
         {isDone && (
           <button className="mc-btn mc-btn-view" onClick={onOpenScorecard}>📋 Scorecard</button>
         )}
-        {!isLive && (
+        {!isLive && canScore && (
           <button className="mc-btn mc-btn-del" onClick={onDelete} disabled={deleting}>
             {deleting ? '…' : '🗑'}
           </button>
@@ -1660,8 +1820,20 @@ const LocalMatchPage: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
   const [activeMatch, setActiveMatch] = useState<LocalMatch | null>(null);
+  const [watchMatch, setWatchMatch] = useState<LocalMatch | null>(null);
   const [celebrationMatch, setCelebrationMatch] = useState<LocalMatch | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  // Current user's email — used to decide who may score (own) vs only watch a match
+  const currentUserEmail: string = (() => {
+    try {
+      const raw = localStorage.getItem('user');
+      return raw ? (JSON.parse(raw).email ?? '') : '';
+    } catch { return ''; }
+  })();
+  // A match is editable only by its creator. Legacy matches (no owner) stay open.
+  const canScoreMatch = (m: LocalMatch): boolean =>
+    !m.createdByEmail || m.createdByEmail.toLowerCase() === currentUserEmail.toLowerCase();
   const [theme, setTheme] = useState<'dark' | 'light'>(() =>
     (localStorage.getItem('crickmax_theme') as 'dark' | 'light') || 'dark'
   );
@@ -1768,6 +1940,9 @@ const LocalMatchPage: React.FC = () => {
       {activeMatch?.status === 'COMPLETED' && (
         <CompletedScorecard match={activeMatch} onClose={() => setActiveMatch(null)} />
       )}
+      {watchMatch && (
+        <WatchModal match={watchMatch} onClose={() => setWatchMatch(null)} />
+      )}
 
       {/* Hero */}
       <div className="lm-hero">
@@ -1849,8 +2024,10 @@ const LocalMatchPage: React.FC = () => {
               key={match.id}
               match={match}
               deleting={deletingId === match.id}
+              canScore={canScoreMatch(match)}
               onStart={() => handleStartMatch(match.id)}
               onOpenScorecard={() => setActiveMatch(match)}
+              onWatch={() => setWatchMatch(match)}
               onDelete={() => handleDelete(match.id)}
             />
           ))}
