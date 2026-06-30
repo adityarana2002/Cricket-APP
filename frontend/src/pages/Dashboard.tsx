@@ -16,22 +16,35 @@ const getInit = (name: string): string => {
   return (w.length === 1 ? name.slice(0, 2) : (w[0][0] ?? '') + (w[1]?.[0] ?? '')).toUpperCase() || '??';
 };
 
+const getGreeting = (): string => {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+};
+
+const getStatusMeta = (status: string): { label: string; cls: string } => {
+  switch (status?.toUpperCase()) {
+    case 'LIVE':      return { label: '🔴 Live',      cls: 'badge--live'      };
+    case 'UPCOMING':  return { label: '📅 Upcoming',  cls: 'badge--upcoming'  };
+    case 'COMPLETED': return { label: '✅ Completed', cls: 'badge--completed' };
+    default:          return { label: status,          cls: 'badge--default'   };
+  }
+};
+
 // ── Live Match Card ──────────────────────────────────────────────────────────
 const DashLiveCard: React.FC<{ match: LocalMatch }> = ({ match }) => {
-  const isBatTeam1 = match.battingTeam === match.team1Name;
-  const target = match.currentInnings === 2
+  const isBatTeam1  = match.battingTeam === match.team1Name;
+  const target      = match.currentInnings === 2
     ? (isBatTeam1 ? match.team2Score + 1 : match.team1Score + 1)
     : null;
-  const batScore = isBatTeam1 ? match.team1Score : match.team2Score;
-  const runsNeeded = target !== null ? Math.max(0, target - batScore) : null;
+  const batScore    = isBatTeam1 ? match.team1Score : match.team2Score;
+  const runsNeeded  = target !== null ? Math.max(0, target - batScore) : null;
 
   return (
     <div className="dlc-card">
       <div className="dlc-header">
-        <div className="dlc-live-badge">
-          <span className="dlc-dot" />
-          LIVE
-        </div>
+        <div className="dlc-live-badge"><span className="dlc-dot" />LIVE</div>
         <div className="dlc-meta-right">
           <span className="dlc-format">{match.matchFormat}</span>
           {match.matchCode && <span className="dlc-code">🔑 {match.matchCode}</span>}
@@ -47,16 +60,13 @@ const DashLiveCard: React.FC<{ match: LocalMatch }> = ({ match }) => {
             <span className="dlc-sep">/</span>
             <span className="dlc-wkts">{match.team1Wickets}</span>
           </div>
-          {match.battingTeam === match.team1Name && (
-            <span className="dlc-bat-tag">🏏 BAT</span>
-          )}
+          {match.battingTeam === match.team1Name && <span className="dlc-bat-tag">🏏 BAT</span>}
         </div>
 
         <div className="dlc-mid">
           <div className="dlc-vs">VS</div>
           <div className="dlc-ov-badge">
-            {match.currentOver}.{match.currentBall}
-            {match.totalOvers ? `/${match.totalOvers}` : ''}
+            {match.currentOver}.{match.currentBall}{match.totalOvers ? `/${match.totalOvers}` : ''}
           </div>
         </div>
 
@@ -68,22 +78,17 @@ const DashLiveCard: React.FC<{ match: LocalMatch }> = ({ match }) => {
             <span className="dlc-sep">/</span>
             <span className="dlc-wkts">{match.team2Wickets}</span>
           </div>
-          {match.battingTeam === match.team2Name && (
-            <span className="dlc-bat-tag">🏏 BAT</span>
-          )}
+          {match.battingTeam === match.team2Name && <span className="dlc-bat-tag">🏏 BAT</span>}
         </div>
       </div>
 
       <div className="dlc-footer">
         {target !== null && runsNeeded !== null && (
-          <span className="dlc-target">
-            Target {target} · Need {runsNeeded} more
-          </span>
+          <span className="dlc-target">Target {target} · Need {runsNeeded} more</span>
         )}
         {match.striker && (
           <span className="dlc-players">
-            ⚡ {match.striker}
-            {match.currentBowler && <> · 🎯 {match.currentBowler}</>}
+            ⚡ {match.striker}{match.currentBowler && <> · 🎯 {match.currentBowler}</>}
           </span>
         )}
         {match.location && match.location !== 'Local Ground' && (
@@ -97,115 +102,130 @@ const DashLiveCard: React.FC<{ match: LocalMatch }> = ({ match }) => {
 // ── Dashboard ────────────────────────────────────────────────────────────────
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [user, setUser]           = useState<UserData | null>(null);
-  const [loading, setLoading]     = useState(true);
-  const [error, setError]         = useState('');
-  const [recentMatches, setRecent] = useState<LocalMatch[]>([]);
-  const [liveMatches, setLive]    = useState<LocalMatch[]>([]);
-  const [totalMatches, setTotal]  = useState(0);
-  const [lastPoll, setLastPoll]   = useState<Date | null>(null);
+  const [user,          setUser]      = useState<UserData | null>(null);
+  const [loading,       setLoading]   = useState(true);
+  const [error,         setError]     = useState('');
+  const [recentMatches, setRecent]    = useState<LocalMatch[]>([]);
+  const [liveMatches,   setLive]      = useState<LocalMatch[]>([]);
+  const [totalMatches,  setTotal]     = useState(0);
+  const [completedCount,setCompleted] = useState(0);
+  const [upcomingCount, setUpcoming]  = useState(0);
+  const [lastPoll,      setLastPoll]  = useState<Date | null>(null);
+
+  const [theme, setTheme] = useState<'light' | 'dark'>(() =>
+    (localStorage.getItem('cricmax-theme') as 'light' | 'dark') || 'light'
+  );
+
+  const toggleTheme = () => {
+    const next = theme === 'light' ? 'dark' : 'light';
+    setTheme(next);
+    localStorage.setItem('cricmax-theme', next);
+  };
 
   const fetchLive = useCallback(async () => {
     try {
       const live = await localMatchService.getLocalMatchesByStatus('LIVE');
       setLive(live);
       setLastPoll(new Date());
-    } catch { /* fail silently */ }
+    } catch { /* silent */ }
   }, []);
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      try { setUser(JSON.parse(userData)); } catch { setError('Failed to load user data'); }
+    const raw = localStorage.getItem('user');
+    if (raw) {
+      try { setUser(JSON.parse(raw)); } catch { setError('Failed to load user data.'); }
     }
-
     const init = async () => {
       try {
         const all = await localMatchService.getAllLocalMatches();
         setRecent(all.slice(0, 5));
         setTotal(all.length);
         setLive(all.filter(m => m.status === 'LIVE'));
+        setCompleted(all.filter(m => m.status === 'COMPLETED').length);
+        setUpcoming(all.filter(m => m.status === 'UPCOMING').length);
         setLastPoll(new Date());
-      } catch { /* fail gracefully */ }
+      } catch { /* graceful */ }
       finally { setLoading(false); }
     };
     init();
   }, []);
 
-  // Poll live matches every 6 seconds
   useEffect(() => {
     const iv = setInterval(fetchLive, 6000);
     return () => clearInterval(iv);
   }, [fetchLive]);
 
-  const getStatusColor = (status: string) => {
-    switch (status?.toUpperCase()) {
-      case 'UPCOMING':  return 'bg-yellow-100 text-yellow-800';
-      case 'LIVE':      return 'bg-red-100 text-red-800';
-      case 'COMPLETED': return 'bg-green-100 text-green-800';
-      default:          return 'bg-gray-100 text-gray-800';
-    }
-  };
-  const getStatusLabel = (status: string) => {
-    switch (status?.toUpperCase()) {
-      case 'UPCOMING':  return '📅 Upcoming';
-      case 'LIVE':      return '🔴 Live';
-      case 'COMPLETED': return '✅ Completed';
-      default:          return status;
-    }
-  };
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+  });
 
-  if (loading) return (
-    <div className="dashboard flex items-center justify-center min-h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="dashboard" data-theme={theme}>
+        <div className="dash-loading">
+          <div className="dash-spinner" />
+          <p>Loading your dashboard…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="dashboard">
-      <div className="dashboard-container">
+    <div className="dashboard" data-theme={theme}>
+      <div className="dash-container">
 
-        <div className="welcome-section mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
-            Welcome back, {user?.firstName}! 👋
-          </h1>
-          <p className="text-gray-600">Here's what's happening with your cricket activities today</p>
+        {/* ── Top Bar ── */}
+        <div className="dash-topbar">
+          <div className="dash-greeting">
+            <h1>{getGreeting()}, {user?.firstName ?? 'Player'} 👋</h1>
+            <p>{today}</p>
+          </div>
+          <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
+            <span className="theme-toggle-icon">{theme === 'dark' ? '☀️' : '🌙'}</span>
+            <span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
+          </button>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded">
-            <p className="text-sm text-red-700">{error}</p>
-          </div>
-        )}
+        {error && <div className="dash-error"><span>⚠</span>{error}</div>}
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Link
-            to="/local-matches"
-            className="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow duration-300 block"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm font-medium">Total Matches</p>
-                <p className="text-3xl font-bold text-gray-800 mt-1">{totalMatches}</p>
-              </div>
-              <div className="text-3xl">🏏</div>
+        {/* ── Stats Grid ── */}
+        <div className="dash-stats-grid">
+          <Link to="/local-matches" className="stat-card stat-card--blue">
+            <div className="stat-icon">🏏</div>
+            <div className="stat-body">
+              <span className="stat-value">{totalMatches}</span>
+              <span className="stat-label">Total Matches</span>
             </div>
           </Link>
-          <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100 block">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm font-medium">Live Now</p>
-                <p className="text-3xl font-bold text-red-600 mt-1">{liveMatches.length}</p>
-              </div>
-              <div className="text-3xl">🔴</div>
+
+          <div className="stat-card stat-card--red">
+            <div className="stat-icon">🔴</div>
+            <div className="stat-body">
+              <span className="stat-value">{liveMatches.length}</span>
+              <span className="stat-label">Live Now</span>
+            </div>
+          </div>
+
+          <div className="stat-card stat-card--green">
+            <div className="stat-icon">✅</div>
+            <div className="stat-body">
+              <span className="stat-value">{completedCount}</span>
+              <span className="stat-label">Completed</span>
+            </div>
+          </div>
+
+          <div className="stat-card stat-card--amber">
+            <div className="stat-icon">📅</div>
+            <div className="stat-body">
+              <span className="stat-value">{upcomingCount}</span>
+              <span className="stat-label">Upcoming</span>
             </div>
           </div>
         </div>
 
         {/* ── Live Matches ── */}
         {liveMatches.length > 0 && (
-          <div className="mb-8">
+          <section className="dash-section">
             <div className="dlc-section-hdr">
               <div className="dlc-section-title">
                 <span className="dlc-hdr-dot" />
@@ -221,110 +241,116 @@ const Dashboard: React.FC = () => {
             <div className="dlc-grid">
               {liveMatches.map(m => <DashLiveCard key={m.id} match={m} />)}
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Quick Actions */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button
-              onClick={() => navigate('/local-matches')}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-300 transform hover:scale-105 flex items-center justify-center space-x-2"
-            >
-              <span>➕</span><span>Create Match</span>
-            </button>
-            <button
-              onClick={() => navigate('/profile')}
-              className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-300 transform hover:scale-105 flex items-center justify-center space-x-2"
-            >
-              <span>👤</span><span>My Profile</span>
-            </button>
-          </div>
-        </div>
+        {/* ── Main Grid: Quick Actions + Recent Matches ── */}
+        <div className="dash-main-grid">
 
-        {/* Recent Matches */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-800">Recent Matches</h2>
-            <Link to="/local-matches" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-              View All →
-            </Link>
-          </div>
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
-            {recentMatches.length > 0 ? (
-              <div className="divide-y divide-gray-100">
-                {recentMatches.map(match => (
-                  <div key={match.id} className="p-6 hover:bg-gray-50 transition-colors duration-200">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-4">
-                          <div className="font-bold text-gray-800">{match.team1Name}</div>
-                          <div className="text-gray-400 text-sm">vs</div>
-                          <div className="font-bold text-gray-800">{match.team2Name}</div>
-                        </div>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {match.createdAt && (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                              {new Date(match.createdAt).toLocaleDateString()}
-                            </span>
-                          )}
-                          {match.location && (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              {match.location}
-                            </span>
-                          )}
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(match.status)}`}>
-                            {getStatusLabel(match.status)}
-                          </span>
-                        </div>
-                      </div>
-                      <Link
-                        to="/local-matches"
-                        className="mt-4 md:mt-0 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-300"
-                      >
-                        View Details
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-8 text-center">
-                <p className="text-gray-500 mb-4">No matches yet. Create your first match!</p>
-                <button
-                  onClick={() => navigate('/local-matches')}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300"
-                >
-                  Create Match
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+          {/* Quick Actions */}
+          <section className="dash-section">
+            <h2 className="dash-section-title">Quick Actions</h2>
+            <div className="qa-grid">
+              <button className="qa-card qa-card--primary" onClick={() => navigate('/local-matches')}>
+                <div className="qa-icon">➕</div>
+                <div className="qa-body">
+                  <span className="qa-title">Create Match</span>
+                  <span className="qa-desc">Start a new local match</span>
+                </div>
+                <span className="qa-arrow">→</span>
+              </button>
 
-        {/* Profile Card */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Profile</h2>
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-gray-800">{user?.firstName} {user?.lastName}</h3>
-                <p className="text-gray-600">{user?.email}</p>
-                <p className="text-sm text-gray-500">Role: {user?.role}</p>
-              </div>
-              <Link
-                to="/profile"
-                className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center space-x-2"
-              >
-                <span>👤</span><span>View Profile</span>
+              <button className="qa-card qa-card--secondary" onClick={() => navigate('/profile')}>
+                <div className="qa-icon">👤</div>
+                <div className="qa-body">
+                  <span className="qa-title">My Profile</span>
+                  <span className="qa-desc">View and edit details</span>
+                </div>
+                <span className="qa-arrow">→</span>
+              </button>
+
+              <Link to="/tournaments" className="qa-card qa-card--gold">
+                <div className="qa-icon">🏆</div>
+                <div className="qa-body">
+                  <span className="qa-title">Tournaments</span>
+                  <span className="qa-desc">Browse tournaments</span>
+                </div>
+                <span className="qa-arrow">→</span>
+              </Link>
+
+              <Link to="/players" className="qa-card qa-card--green">
+                <div className="qa-icon">🌟</div>
+                <div className="qa-body">
+                  <span className="qa-title">Players</span>
+                  <span className="qa-desc">Explore player stats</span>
+                </div>
+                <span className="qa-arrow">→</span>
               </Link>
             </div>
-          </div>
+          </section>
+
+          {/* Recent Matches */}
+          <section className="dash-section">
+            <div className="dash-section-hdr">
+              <h2 className="dash-section-title">Recent Matches</h2>
+              <Link to="/local-matches" className="dash-view-all">View All →</Link>
+            </div>
+            <div className="recent-card">
+              {recentMatches.length > 0 ? (
+                recentMatches.map(match => {
+                  const meta = getStatusMeta(match.status);
+                  return (
+                    <div key={match.id} className="match-row">
+                      <div className="match-teams">
+                        <span className="match-team">{match.team1Name}</span>
+                        <span className="match-vs">vs</span>
+                        <span className="match-team">{match.team2Name}</span>
+                      </div>
+                      <div className="match-badges">
+                        {match.createdAt && (
+                          <span className="badge badge--date">
+                            {new Date(match.createdAt).toLocaleDateString()}
+                          </span>
+                        )}
+                        {match.location && (
+                          <span className="badge badge--loc">📍 {match.location}</span>
+                        )}
+                        <span className={`badge ${meta.cls}`}>{meta.label}</span>
+                      </div>
+                      <Link to="/local-matches" className="match-detail-btn">Details</Link>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="recent-empty">
+                  <span className="recent-empty-icon">🏏</span>
+                  <p>No matches yet. Create your first one!</p>
+                  <button className="empty-cta" onClick={() => navigate('/local-matches')}>
+                    Create Match
+                  </button>
+                </div>
+              )}
+            </div>
+          </section>
         </div>
+
+        {/* ── Profile Card ── */}
+        <section className="dash-section">
+          <h2 className="dash-section-title">Your Profile</h2>
+          <div className="profile-card">
+            <div className="profile-avatar">
+              {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+            </div>
+            <div className="profile-info">
+              <h3 className="profile-name">{user?.firstName} {user?.lastName}</h3>
+              <p className="profile-email">{user?.email}</p>
+              <span className="profile-role-badge">{user?.role}</span>
+            </div>
+            <Link to="/profile" className="profile-cta">
+              <span>👤</span> View Profile
+            </Link>
+          </div>
+        </section>
 
       </div>
     </div>
