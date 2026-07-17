@@ -39,6 +39,9 @@ public class LocalMatchResponseDTO {
     private String winnerName;
     private Boolean isTie;
     private String createdByEmail;
+
+    /** Scorecard snapshot JSON (batters/bowlers/ball events) — see Match.scoreState. */
+    private String scoreState;
     private LocalDateTime matchDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

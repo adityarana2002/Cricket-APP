@@ -175,9 +175,14 @@ public class LocalMatchService {
      * user so legacy data is never locked out.
      */
     private void verifyOwner(Match match, String userEmail) {
+        verifyOwner(match, userEmail, "score");
+    }
+
+    /** As {@link #verifyOwner(Match, String)}, with the attempted action named in the error. */
+    private void verifyOwner(Match match, String userEmail, String action) {
         String owner = match.getCreatedByEmail();
         if (owner != null && !owner.equalsIgnoreCase(userEmail)) {
-            throw new AccessDeniedException("Only the match creator can score this match");
+            throw new AccessDeniedException("Only the match creator can " + action + " this match");
         }
     }
 
@@ -187,33 +192,69 @@ public class LocalMatchService {
         return toDTO(match);
     }
 
+    /**
+     * Fetch by id, but only for the owner. Ids are sequential and guessable, so
+     * spectators must go through {@link #getLocalMatchByCode} instead.
+     */
+    public LocalMatchResponseDTO getOwnedLocalMatch(Long matchId, String userEmail) {
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new RuntimeException("Match not found with id: " + matchId));
+        verifyOwner(match, userEmail, "view");
+        return toDTO(match);
+    }
+
     public LocalMatchResponseDTO getLocalMatchByCode(String matchCode) {
         Match match = matchRepository.findByMatchCode(matchCode.toUpperCase())
                 .orElseThrow(() -> new RuntimeException("Match not found with code: " + matchCode));
         return toDTO(match);
     }
 
-    public List<LocalMatchResponseDTO> getAllLocalMatches() {
-        return matchRepository.findAll()
+    /**
+     * The match list is private to its creator: it doubles as the user's own
+     * history, and listing every match would hand out other people's match codes.
+     * Spectators reach another user's match only via {@link #getLocalMatchByCode}.
+     */
+    public List<LocalMatchResponseDTO> getMyLocalMatches(String userEmail) {
+        return matchRepository.findByCreatedByEmailIgnoreCaseOrderByCreatedAtDesc(userEmail)
                 .stream()
                 .map(this::toDTO)
                 .toList();
     }
 
     @Transactional
-    public void deleteMatch(Long matchId) {
+    public void deleteMatch(Long matchId, String userEmail) {
         Match match = matchRepository.findById(matchId)
                 .orElseThrow(() -> new RuntimeException("Match not found with id: " + matchId));
+        verifyOwner(match, userEmail, "delete");
         if ("LIVE".equals(match.getStatus())) {
             throw new RuntimeException("Cannot delete a LIVE match. End the match first.");
         }
         matchRepository.delete(match);
-        log.info("Match {} deleted", matchId);
+        log.info("Match {} deleted by {}", matchId, userEmail);
     }
 
-    public List<LocalMatchResponseDTO> getLocalMatchesByStatus(String status) {
-        return matchRepository.findByStatus(status.toUpperCase())
+    /**
+     * Stores the scorer's scorecard snapshot so spectators holding the match code
+     * can see batter/bowler figures and ball-by-ball detail. Owner-only: this is
+     * the authoritative scorecard for the match.
+     *
+     * Kept separate from {@link #updateScore} on purpose — the snapshot is a
+     * convenience for viewers, and a failure here must never disrupt scoring.
+     */
+    @Transactional
+    public void saveScoreState(Long matchId, String state, String userEmail) {
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new RuntimeException("Match not found with id: " + matchId));
+        verifyOwner(match, userEmail);
+        match.setScoreState(state);
+        matchRepository.save(match);
+    }
+
+    /** Status filter over the caller's own matches only. */
+    public List<LocalMatchResponseDTO> getMyLocalMatchesByStatus(String status, String userEmail) {
+        return matchRepository.findByCreatedByEmailIgnoreCaseOrderByCreatedAtDesc(userEmail)
                 .stream()
+                .filter(m -> status.equalsIgnoreCase(m.getStatus()))
                 .map(this::toDTO)
                 .toList();
     }
@@ -284,6 +325,7 @@ public class LocalMatchService {
                 .winnerName(match.getWinner() != null ? match.getWinner().getName() : null)
                 .isTie("COMPLETED".equals(match.getStatus()) && match.getWinner() == null)
                 .createdByEmail(match.getCreatedByEmail())
+                .scoreState(match.getScoreState())
                 .matchDate(match.getMatchDate())
                 .createdAt(match.getCreatedAt())
                 .updatedAt(match.getUpdatedAt())

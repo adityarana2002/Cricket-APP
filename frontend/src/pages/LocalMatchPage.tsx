@@ -6,19 +6,21 @@ import {
   CreateLocalMatchRequest,
   UpdateScoreRequest,
 } from '../services/localMatchService';
+import {
+  BallEvent,
+  BallEventType,
+  BatterStats,
+  BowlerStats,
+  InningsData,
+  ScoreState,
+  SCORE_STATE_VERSION,
+} from '../types/scorecard';
+import { getInitials } from '../utils/initials';
+import WatchModal from '../components/WatchModal';
+import { InningsSection } from '../components/ScorecardTables';
 import './LocalMatchPage.css';
 
 type StatusFilter = 'ALL' | 'UPCOMING' | 'LIVE' | 'COMPLETED';
-
-// ─── Utilities ────────────────────────────────────────────────────────────────
-const getInitials = (name: string): string => {
-  const words = name.trim().split(/\s+/);
-  return words
-    .slice(0, 2)
-    .map(w => w[0] || '')
-    .join('')
-    .toUpperCase() || '??';
-};
 
 const FORMAT_DEFAULT_OVERS: Record<string, number | undefined> = {
   T20: 20,
@@ -47,35 +49,24 @@ const BLANK_FORM: CreateLocalMatchRequest = {
 };
 
 // ─── Scoring types ───────────────────────────────────────────────────────────
-type BallEventType = 'dot' | 'run' | 'four' | 'six' | 'wicket' | 'wide' | 'noball';
-interface BallEvent {
-  display: string;
-  runs: number;
-  type: BallEventType;
-}
+// The scorecard model is shared with the read-only live viewer — see types/scorecard.
 interface OverSummary {
   overNum: number;
   runs: number;
   wickets: number;
 }
-interface BatterStats {
-  name: string; runs: number; balls: number; fours: number; sixes: number;
-  isStriker: boolean; isOut: boolean;
-}
-interface BowlerStats {
-  name: string; overs: number; balls: number; runs: number; wickets: number;
-}
+
 const makeBlankBatter = (name: string, isStriker: boolean): BatterStats => ({
   name, runs: 0, balls: 0, fours: 0, sixes: 0, isStriker, isOut: false,
 });
 
-interface InningsData {
-  battingTeam: string;
-  score: number;
-  wickets: number;
-  batters: BatterStats[];
-  bowlers: BowlerStats[];
-}
+/** The completed first innings, stashed by the scorer at the innings break. */
+const readStoredInnings1 = (matchId: number): InningsData | null => {
+  try {
+    const raw = localStorage.getItem(`crickmax_inn1_${matchId}`);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+};
 
 const mergeIntoBowlerLedger = (ledger: BowlerStats[], bowler: BowlerStats): BowlerStats[] => {
   if (!bowler.name) return ledger;
@@ -102,75 +93,6 @@ const CompletedScorecard: React.FC<{ match: LocalMatch; onClose: () => void }> =
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
   })();
-
-  const srLabel = (runs: number, balls: number) =>
-    balls > 0 ? ((runs / balls) * 100).toFixed(1) : '0.0';
-  const econLabel = (runs: number, overs: number, balls: number) => {
-    const tb = overs * 6 + balls;
-    return tb > 0 ? ((runs / tb) * 6).toFixed(1) : '—';
-  };
-
-  const BattingTable: React.FC<{ batters: BatterStats[] }> = ({ batters }) => (
-    <div className="cs-table-wrap">
-      <div className="cs-table-head cs-bat-cols">
-        <span className="cs-col-name">Batter</span>
-        <span>R</span><span>B</span><span>4s</span><span>6s</span><span>SR</span>
-      </div>
-      {batters.filter(b => b.name).map((b, i) => (
-        <div key={i} className={`cs-table-row cs-bat-cols ${!b.isOut ? 'cs-not-out' : ''}`}>
-          <span className="cs-col-name">
-            {b.name}{!b.isOut && <span className="cs-notout-star">*</span>}
-          </span>
-          <span className="cs-stat-runs">{b.runs}</span>
-          <span>{b.balls}</span>
-          <span className="cs-stat-four">{b.fours}</span>
-          <span className="cs-stat-six">{b.sixes}</span>
-          <span>{srLabel(b.runs, b.balls)}</span>
-        </div>
-      ))}
-    </div>
-  );
-
-  const BowlingTable: React.FC<{ bowlers: BowlerStats[] }> = ({ bowlers }) => (
-    <div className="cs-table-wrap">
-      <div className="cs-table-head cs-bowl-cols">
-        <span className="cs-col-name">Bowler</span>
-        <span>O</span><span>R</span><span>W</span><span>ECON</span>
-      </div>
-      {bowlers.filter(b => b.name).map((b, i) => (
-        <div key={i} className="cs-table-row cs-bowl-cols">
-          <span className="cs-col-name">{b.name}</span>
-          <span>{b.overs}.{b.balls}</span>
-          <span>{b.runs}</span>
-          <span className="cs-stat-wkt">{b.wickets}</span>
-          <span>{econLabel(b.runs, b.overs, b.balls)}</span>
-        </div>
-      ))}
-    </div>
-  );
-
-  const InningsSection: React.FC<{ data: InningsData; label: string }> = ({ data, label }) => (
-    <div className="cs-innings-block">
-      <div className="cs-inn-header">
-        <span className="cs-inn-label">{label}</span>
-        <span className="cs-inn-score">
-          {data.battingTeam} — {data.score}/{data.wickets}
-        </span>
-      </div>
-      {data.batters.length > 0 && (
-        <div className="cs-section">
-          <div className="cs-section-title">Batting</div>
-          <BattingTable batters={data.batters} />
-        </div>
-      )}
-      {data.bowlers.length > 0 && (
-        <div className="cs-section">
-          <div className="cs-section-title">Bowling</div>
-          <BowlingTable bowlers={data.bowlers} />
-        </div>
-      )}
-    </div>
-  );
 
   return (
     <div className="lm-modal-overlay" onClick={onClose}>
@@ -412,6 +334,43 @@ const ScoreModal: React.FC<ScoreModalProps> = ({ match, onClose, onUpdate, onEnd
     setOverSummary(null); setPendingOverSummary(null); setOverBowlers([]);
     setBowlerLedger([]); setBatterLedger([]); setError('');
   }, [match.currentInnings]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Scorecard snapshot sync ────────────────────────────────────────────────
+  // Per-batter figures, bowling figures and ball-by-ball detail live only in this
+  // component's state — the match row itself stores just the aggregate score. Push
+  // a snapshot so spectators holding the match code can see the full scorecard.
+  //
+  // Deliberately decoupled from saveScore(): this runs off committed state (never
+  // a stale closure), is debounced, and swallows errors, so it cannot disturb the
+  // scoring path in any way.
+  useEffect(() => {
+    if (!setupDone || match.status !== 'LIVE') return;
+
+    const isNamed = (p: { name: string }) => !!p.name;
+    const ledgerNames = new Set(batterLedger.map(b => b.name));
+    const snapshot: ScoreState = {
+      v: SCORE_STATE_VERSION,
+      innings: match.currentInnings ?? 1,
+      battingTeam: match.battingTeam,
+      batters: [
+        ...batterLedger,
+        ...[batter1, batter2].filter(b => isNamed(b) && !ledgerNames.has(b.name)),
+      ],
+      bowlers: mergeIntoBowlerLedger(bowlerLedger, bowlerStats).filter(isNamed),
+      events: eventLog,
+      innings1: readStoredInnings1(match.id),
+    };
+
+    const timer = setTimeout(() => {
+      localMatchService
+        .saveScoreState(match.id, JSON.stringify(snapshot))
+        .catch(() => { /* viewer convenience only — never surfaced to the scorer */ });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [
+    setupDone, match.status, match.id, match.currentInnings, match.battingTeam,
+    batter1, batter2, bowlerStats, batterLedger, bowlerLedger, eventLog,
+  ]);
 
   // ── Derived ────────────────────────────────────────────────────────────────
   const FORMAT_OVERS: Record<string, number | null> = { T20: 20, ODI: 50, Test: null, Friendly: null };
@@ -1295,145 +1254,6 @@ const ScoreModal: React.FC<ScoreModalProps> = ({ match, onClose, onUpdate, onEnd
   );
 };
 
-// ─── Watch Modal (read-only live viewer for non-owners) ───────────────────────
-const WatchModal: React.FC<{ match: LocalMatch; onClose: () => void }> = ({ match: initial, onClose }) => {
-  const [match, setMatch] = useState<LocalMatch>(initial);
-  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
-
-  // Poll the live score every 5s so spectators see updates in near real time
-  useEffect(() => {
-    let active = true;
-    const poll = async () => {
-      try {
-        const fresh = await localMatchService.getLocalMatch(initial.id);
-        if (active) { setMatch(fresh); setUpdatedAt(new Date()); }
-      } catch { /* keep showing last known score */ }
-    };
-    poll();
-    const iv = setInterval(poll, 5000);
-    return () => { active = false; clearInterval(iv); };
-  }, [initial.id]);
-
-  const isBatTeam1 = match.battingTeam === match.team1Name;
-  const batScore   = isBatTeam1 ? match.team1Score : match.team2Score;
-  const batWkts    = isBatTeam1 ? match.team1Wickets : match.team2Wickets;
-  const target     = match.currentInnings === 2
-    ? (isBatTeam1 ? match.team2Score + 1 : match.team1Score + 1) : null;
-  const runsNeeded = target !== null ? Math.max(0, target - batScore) : null;
-  const totalBalls = match.currentOver * 6 + match.currentBall;
-  const crr        = totalBalls > 0 ? ((batScore / totalBalls) * 6).toFixed(2) : '—';
-  const isOver     = match.status === 'COMPLETED';
-
-  return (
-    <div className="lm-modal-overlay" onClick={onClose}>
-      <div className="lm-modal sc-modal" onClick={e => e.stopPropagation()}>
-        <div className="lm-modal-header">
-          <div>
-            <h2 className="lm-modal-title">
-              {!isOver && <span className="live-dot" />}
-              {isOver ? 'Match Result' : 'Watching Live'}
-            </h2>
-            <p className="lm-modal-sub">{match.team1Name} vs {match.team2Name} · {match.matchFormat}</p>
-          </div>
-          <button className="lm-modal-close" onClick={onClose}>✕</button>
-        </div>
-
-        <div className="wm-readonly-note">👁 View only — only the match creator can update the score</div>
-
-        <div className="sc-score-header">
-          <div className="sc-sh-team">
-            <div className="sc-sh-avatar sc-avatar-bat">{getInitials(match.battingTeam)}</div>
-            <div className="sc-sh-info">
-              <div className="sc-sh-name">{match.battingTeam}</div>
-              <div className="sc-sh-sub">Batting</div>
-            </div>
-          </div>
-          <div className="sc-sh-center">
-            <div className="sc-sh-big-score">{batScore}<span className="sc-sh-sep">/</span>{batWkts}</div>
-            <div className="sc-sh-overs">{match.currentOver}.{match.currentBall}{match.totalOvers ? `/${match.totalOvers}` : ''} ov</div>
-            {target && <div className="sc-sh-target">Tgt {target}</div>}
-          </div>
-          <div className="sc-sh-team sc-sh-right">
-            <div className="sc-sh-info sc-sh-right-info">
-              <div className="sc-sh-name">{match.bowlingTeam}</div>
-              <div className="sc-sh-sub">Bowling</div>
-            </div>
-            <div className="sc-sh-avatar sc-avatar-bwl">{getInitials(match.bowlingTeam)}</div>
-          </div>
-        </div>
-
-        <div className="sc-rate-bar">
-          <div className="sc-rate-item">
-            <span className="sc-rate-val">{crr}</span>
-            <span className="sc-rate-lbl">CRR</span>
-          </div>
-          {runsNeeded !== null && !isOver && (
-            <div className="sc-rate-item sc-rate-need">
-              <span className="sc-rate-val">{runsNeeded}</span>
-              <span className="sc-rate-lbl">Needed</span>
-            </div>
-          )}
-        </div>
-
-        {!isOver && (
-          <div className="sc-live-panel">
-            <div className="sc-lp-batters">
-              <div className="sc-lp-batter sc-lp-striker">
-                <div className="sc-lp-bat-left">
-                  <div className="sc-lp-name-row">
-                    <span className="sc-lp-bat-icon">🏏</span>
-                    <span className="sc-lp-name">{match.striker || 'Striker'}</span>
-                    <span className="sc-lp-star">*</span>
-                  </div>
-                </div>
-              </div>
-              <div className="sc-lp-batter sc-lp-ns">
-                <div className="sc-lp-bat-left">
-                  <div className="sc-lp-name-row">
-                    <span className="sc-lp-name">{match.nonStriker || 'Non-striker'}</span>
-                    <span className="sc-lp-ns-tag">non-striker</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="sc-lp-bowler">
-              <div className="sc-lp-bowl-left">
-                <div className="sc-lp-name-row">
-                  <span className="sc-lp-bowl-icon">🎯</span>
-                  <span className="sc-lp-name">{match.currentBowler || 'Bowler'}</span>
-                  <span className="sc-lp-ns-tag">bowling</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {!isOver && runsNeeded !== null && target !== null && (
-          <div className="wm-chase">
-            {match.battingTeam} need {runsNeeded} run{runsNeeded !== 1 ? 's' : ''} to win
-          </div>
-        )}
-
-        {isOver && (
-          <div className="wm-result-banner">
-            {match.winnerName ? `🏆 ${match.winnerName} won the match!` : '🤝 Match Tied!'}
-          </div>
-        )}
-
-        <div className="wm-footer">
-          {isOver
-            ? <span className="wm-updated">This match has ended</span>
-            : updatedAt && (
-                <span className="wm-updated">
-                  ⟳ Auto-refreshing · updated {updatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                </span>
-              )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // ─── Match Card ───────────────────────────────────────────────────────────────
 interface MatchCardProps {
   match: LocalMatch;
@@ -1847,7 +1667,8 @@ const LocalMatchPage: React.FC = () => {
   const fetchMatches = useCallback(async () => {
     try {
       setLoading(true); setError('');
-      const data = await localMatchService.getAllLocalMatches();
+      // Own matches only — this list is the user's private history.
+      const data = await localMatchService.getMyLocalMatches();
       setMatches(data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load matches. Is the backend running?');

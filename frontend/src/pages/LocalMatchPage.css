@@ -2439,3 +2439,84 @@
 .lm-page[data-theme="light"] .wm-readonly-note { background: rgba(6,182,212,0.07); color: #0891b2; }
 .lm-page[data-theme="light"] .wm-updated { color: #94a3b8; }
 .lm-page[data-theme="light"] .sc-tie-option { color: #0891b2; }
+
+/* ── Portal wrapper ───────────────────────────────────────────────────────────
+   Every light-theme rule above is scoped under `.lm-page[data-theme="light"]`.
+   Hosts outside this page (e.g. the dashboard) render these modals inside
+   `.lm-page.lm-portal` so the theme selector still matches, while this modifier
+   strips the page chrome so the wrapper adds no layout of its own. */
+.lm-portal {
+  min-height: 0;
+  background: none;
+  padding-bottom: 0;
+}
+
+/* ── Join-live-match modal (match code entry) ─────────────────────────────── */
+.jlm-modal { max-width: 420px; }
+.jlm-body {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px 24px;
+}
+.jlm-label {
+  font-size: 0.72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+.jlm-input {
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(99,102,241,0.28);
+  border-radius: 12px;
+  color: #e2e8f0;
+  font-family: 'SFMono-Regular', 'Consolas', monospace;
+  font-size: 1.5rem; font-weight: 700;
+  letter-spacing: 0.32em;
+  text-align: center;
+  text-transform: uppercase;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.jlm-input::placeholder { color: #334155; letter-spacing: 0.32em; }
+.jlm-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.18);
+}
+.jlm-input:disabled { opacity: 0.6; cursor: not-allowed; }
+.jlm-input-err { border-color: rgba(239,68,68,0.6); }
+.jlm-input-err:focus { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.16); }
+.jlm-hint {
+  margin: 10px 2px 0;
+  font-size: 0.74rem; line-height: 1.5; color: #64748b;
+  text-align: center;
+}
+.jlm-error {
+  margin: 10px 2px 0;
+  font-size: 0.76rem; font-weight: 600; color: #f87171;
+  text-align: center;
+}
+.jlm-actions {
+  display: flex; gap: 10px;
+  margin-top: 20px;
+}
+.jlm-actions .lm-btn { flex: 1; justify-content: center; }
+
+.lm-page[data-theme="light"] .jlm-label { color: #64748b; }
+.lm-page[data-theme="light"] .jlm-input {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+.lm-page[data-theme="light"] .jlm-input::placeholder { color: #cbd5e1; }
+.lm-page[data-theme="light"] .jlm-input:focus { border-color: #6366f1; }
+.lm-page[data-theme="light"] .jlm-input-err { border-color: #ef4444; }
+.lm-page[data-theme="light"] .jlm-hint  { color: #94a3b8; }
+.lm-page[data-theme="light"] .jlm-error { color: #dc2626; }
+
+@media (max-width: 480px) {
+  .jlm-body { padding: 18px 18px 20px; }
+  .jlm-input { font-size: 1.25rem; letter-spacing: 0.24em; }
+  .jlm-actions { flex-direction: column-reverse; }
+}

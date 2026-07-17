@@ -54,6 +54,8 @@ export interface LocalMatch {
   winnerName?: string;
   isTie?: boolean;
   createdByEmail?: string;
+  /** JSON scorecard snapshot — parse with parseScoreState() from types/scorecard. */
+  scoreState?: string;
   matchDate: string;
   createdAt: string;
   updatedAt: string;
@@ -65,22 +67,26 @@ export const localMatchService = {
     return response.data;
   },
 
+  /** Owner-only: the server rejects ids the caller does not own with a 403. */
   async getLocalMatch(id: number): Promise<LocalMatch> {
     const response = await apiClient.get(`/local-matches/${id}`);
     return response.data;
   },
 
+  /** The only way to reach someone else's match — holding the code grants access. */
   async getLocalMatchByCode(code: string): Promise<LocalMatch> {
     const response = await apiClient.get(`/local-matches/by-code/${code.toUpperCase()}`);
     return response.data;
   },
 
-  async getAllLocalMatches(): Promise<LocalMatch[]> {
+  /** The signed-in user's own matches (their history), newest first. */
+  async getMyLocalMatches(): Promise<LocalMatch[]> {
     const response = await apiClient.get('/local-matches');
     return response.data;
   },
 
-  async getLocalMatchesByStatus(status: string): Promise<LocalMatch[]> {
+  /** Status filter across the caller's own matches only. */
+  async getMyLocalMatchesByStatus(status: string): Promise<LocalMatch[]> {
     const response = await apiClient.get(`/local-matches/status/${status}`);
     return response.data;
   },
@@ -105,6 +111,15 @@ export const localMatchService = {
     const query = winnerTeamId != null ? `?winnerTeamId=${winnerTeamId}` : '';
     const response = await apiClient.put(`/local-matches/${id}/end${query}`);
     return response.data;
+  },
+
+  /**
+   * Push the scorer's scorecard snapshot (owner only). Deliberately separate
+   * from updateScore: this is best-effort enrichment for spectators, so callers
+   * should swallow failures rather than disrupt scoring.
+   */
+  async saveScoreState(id: number, state: string): Promise<void> {
+    await apiClient.put(`/local-matches/${id}/score-state`, { state });
   },
 
   async deleteMatch(id: number): Promise<void> {

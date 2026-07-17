@@ -94,6 +94,14 @@ public class Match {
     // may edit the score. Null for legacy matches created before ownership existed.
     private String createdByEmail;
 
+    // Snapshot of the scorer's scorecard (batters, bowlers, ball-by-ball events)
+    // as JSON, pushed by the scoring client. The columns above hold the aggregate
+    // score; this holds the detail spectators need, which would otherwise never
+    // leave the scorer's browser. Opaque to the server — it is stored and served
+    // back verbatim, never parsed here.
+    @Column(columnDefinition = "TEXT")
+    private String scoreState;
+
     @Column(columnDefinition = "TEXT")
     private String description;
 

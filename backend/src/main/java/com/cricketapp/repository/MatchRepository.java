@@ -15,4 +15,11 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     List<Match> findByTeam1IdOrTeam2Id(Long team1Id, Long team2Id);
     List<Match> findByMatchDateBetween(LocalDateTime startDate, LocalDateTime endDate);
     Optional<Match> findByMatchCode(String matchCode);
+
+    /**
+     * Matches owned by one user, newest first. Backs the match list, which is
+     * private per creator — spectators reach other people's matches only by
+     * supplying the match code.
+     */
+    List<Match> findByCreatedByEmailIgnoreCaseOrderByCreatedAtDesc(String createdByEmail);
 }

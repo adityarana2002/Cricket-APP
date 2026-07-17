@@ -2,6 +2,7 @@ package com.cricketapp.controller;
 
 import com.cricketapp.dto.CreateLocalMatchRequest;
 import com.cricketapp.dto.LocalMatchResponseDTO;
+import com.cricketapp.dto.ScoreStateRequest;
 import com.cricketapp.dto.UpdateScoreRequest;
 import com.cricketapp.service.LocalMatchService;
 import lombok.RequiredArgsConstructor;
@@ -37,26 +38,38 @@ public class LocalMatchController {
         }
     }
 
+    /**
+     * The caller's own matches — this list is their private history. Other
+     * users' matches are reachable only through {@link #getLocalMatchByCode}.
+     */
     @GetMapping
-    public ResponseEntity<?> getAllLocalMatches() {
+    public ResponseEntity<?> getMyLocalMatches(Authentication authentication) {
+        if (authentication == null) return ResponseEntity.status(401).build();
         try {
-            return ResponseEntity.ok(localMatchService.getAllLocalMatches());
+            return ResponseEntity.ok(localMatchService.getMyLocalMatches(authentication.getName()));
         } catch (Exception e) {
-            log.error("Error fetching all matches: {}", e.getMessage());
+            log.error("Error fetching matches for {}: {}", authentication.getName(), e.getMessage());
             return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
         }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getLocalMatch(@PathVariable Long id) {
+    public ResponseEntity<?> getLocalMatch(@PathVariable Long id, Authentication authentication) {
+        if (authentication == null) return ResponseEntity.status(401).build();
         try {
-            return ResponseEntity.ok(localMatchService.getLocalMatch(id));
+            return ResponseEntity.ok(localMatchService.getOwnedLocalMatch(id, authentication.getName()));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
             log.error("Error fetching match {}: {}", id, e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", e.getMessage()));
         }
     }
 
+    /**
+     * The one spectator entry point: anyone holding a match code may watch that
+     * match, which is why this endpoint is deliberately not owner-scoped.
+     */
     @GetMapping("/by-code/{matchCode}")
     public ResponseEntity<?> getLocalMatchByCode(@PathVariable String matchCode) {
         try {
@@ -68,9 +81,10 @@ public class LocalMatchController {
     }
 
     @GetMapping("/status/{status}")
-    public ResponseEntity<?> getLocalMatchesByStatus(@PathVariable String status) {
+    public ResponseEntity<?> getMyLocalMatchesByStatus(@PathVariable String status, Authentication authentication) {
+        if (authentication == null) return ResponseEntity.status(401).build();
         try {
-            return ResponseEntity.ok(localMatchService.getLocalMatchesByStatus(status));
+            return ResponseEntity.ok(localMatchService.getMyLocalMatchesByStatus(status, authentication.getName()));
         } catch (Exception e) {
             log.error("Error fetching matches by status {}: {}", status, e.getMessage());
             return ResponseEntity.internalServerError().body(Map.of("message", e.getMessage()));
@@ -106,6 +120,27 @@ public class LocalMatchController {
         }
     }
 
+    /**
+     * Scorecard snapshot from the scoring client. Separate from /score so that a
+     * snapshot failure never blocks the actual score update.
+     */
+    @PutMapping("/{id}/score-state")
+    public ResponseEntity<?> saveScoreState(
+            @PathVariable Long id,
+            @RequestBody ScoreStateRequest request,
+            Authentication authentication) {
+        if (authentication == null) return ResponseEntity.status(401).build();
+        try {
+            localMatchService.saveScoreState(id, request.getState(), authentication.getName());
+            return ResponseEntity.ok(Map.of("message", "Score state saved"));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error saving score state for match {}: {}", id, e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
     @PutMapping("/{id}/switch-innings")
     public ResponseEntity<?> switchInnings(@PathVariable Long id, Authentication authentication) {
         if (authentication == null) return ResponseEntity.status(401).build();
@@ -136,10 +171,13 @@ public class LocalMatchController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteMatch(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> deleteMatch(@PathVariable Long id, Authentication authentication) {
+        if (authentication == null) return ResponseEntity.status(401).build();
         try {
-            localMatchService.deleteMatch(id);
+            localMatchService.deleteMatch(id, authentication.getName());
             return ResponseEntity.ok(Map.of("message", "Match deleted successfully"));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
             log.error("Error deleting match {}: {}", id, e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));

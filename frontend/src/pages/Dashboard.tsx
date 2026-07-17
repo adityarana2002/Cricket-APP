@@ -1,6 +1,8 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { localMatchService, LocalMatch } from '../services/localMatchService';
+import JoinLiveMatchModal from '../components/JoinLiveMatchModal';
+import WatchModal from '../components/WatchModal';
 import './Dashboard.css';
 
 interface UserData {
@@ -10,11 +12,6 @@ interface UserData {
   lastName: string;
   role: string;
 }
-
-const getInit = (name: string): string => {
-  const w = name.trim().split(/\s+/);
-  return (w.length === 1 ? name.slice(0, 2) : (w[0][0] ?? '') + (w[1]?.[0] ?? '')).toUpperCase() || '??';
-};
 
 const getGreeting = (): string => {
   const h = new Date().getHours();
@@ -32,73 +29,6 @@ const getStatusMeta = (status: string): { label: string; cls: string } => {
   }
 };
 
-// ── Live Match Card ──────────────────────────────────────────────────────────
-const DashLiveCard: React.FC<{ match: LocalMatch }> = ({ match }) => {
-  const isBatTeam1  = match.battingTeam === match.team1Name;
-  const target      = match.currentInnings === 2
-    ? (isBatTeam1 ? match.team2Score + 1 : match.team1Score + 1)
-    : null;
-  const batScore    = isBatTeam1 ? match.team1Score : match.team2Score;
-  const runsNeeded  = target !== null ? Math.max(0, target - batScore) : null;
-
-  return (
-    <div className="dlc-card">
-      <div className="dlc-header">
-        <div className="dlc-live-badge"><span className="dlc-dot" />LIVE</div>
-        <div className="dlc-meta-right">
-          <span className="dlc-format">{match.matchFormat}</span>
-          {match.matchCode && <span className="dlc-code">🔑 {match.matchCode}</span>}
-        </div>
-      </div>
-
-      <div className="dlc-scoreboard">
-        <div className={`dlc-team ${match.battingTeam === match.team1Name ? 'dlc-batting' : 'dlc-bowling'}`}>
-          <div className="dlc-av dlc-av1">{getInit(match.team1Name)}</div>
-          <div className="dlc-tname">{match.team1Name}</div>
-          <div className="dlc-score">
-            <span className="dlc-runs">{match.team1Score}</span>
-            <span className="dlc-sep">/</span>
-            <span className="dlc-wkts">{match.team1Wickets}</span>
-          </div>
-          {match.battingTeam === match.team1Name && <span className="dlc-bat-tag">🏏 BAT</span>}
-        </div>
-
-        <div className="dlc-mid">
-          <div className="dlc-vs">VS</div>
-          <div className="dlc-ov-badge">
-            {match.currentOver}.{match.currentBall}{match.totalOvers ? `/${match.totalOvers}` : ''}
-          </div>
-        </div>
-
-        <div className={`dlc-team dlc-team-r ${match.battingTeam === match.team2Name ? 'dlc-batting' : 'dlc-bowling'}`}>
-          <div className="dlc-av dlc-av2">{getInit(match.team2Name)}</div>
-          <div className="dlc-tname">{match.team2Name}</div>
-          <div className="dlc-score">
-            <span className="dlc-runs">{match.team2Score}</span>
-            <span className="dlc-sep">/</span>
-            <span className="dlc-wkts">{match.team2Wickets}</span>
-          </div>
-          {match.battingTeam === match.team2Name && <span className="dlc-bat-tag">🏏 BAT</span>}
-        </div>
-      </div>
-
-      <div className="dlc-footer">
-        {target !== null && runsNeeded !== null && (
-          <span className="dlc-target">Target {target} · Need {runsNeeded} more</span>
-        )}
-        {match.striker && (
-          <span className="dlc-players">
-            ⚡ {match.striker}{match.currentBowler && <> · 🎯 {match.currentBowler}</>}
-          </span>
-        )}
-        {match.location && match.location !== 'Local Ground' && (
-          <span className="dlc-loc">📍 {match.location}</span>
-        )}
-      </div>
-    </div>
-  );
-};
-
 // ── Dashboard ────────────────────────────────────────────────────────────────
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -106,11 +36,10 @@ const Dashboard: React.FC = () => {
   const [loading,       setLoading]   = useState(true);
   const [error,         setError]     = useState('');
   const [recentMatches, setRecent]    = useState<LocalMatch[]>([]);
-  const [liveMatches,   setLive]      = useState<LocalMatch[]>([]);
-  const [totalMatches,  setTotal]     = useState(0);
-  const [completedCount,setCompleted] = useState(0);
-  const [upcomingCount, setUpcoming]  = useState(0);
-  const [lastPoll,      setLastPoll]  = useState<Date | null>(null);
+
+  // Live matches are never listed here — a spectator must supply a match code.
+  const [joinOpen,   setJoinOpen]   = useState(false);
+  const [watchMatch, setWatchMatch] = useState<LocalMatch | null>(null);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() =>
     (localStorage.getItem('cricmax-theme') as 'light' | 'dark') || 'light'
@@ -122,14 +51,6 @@ const Dashboard: React.FC = () => {
     localStorage.setItem('cricmax-theme', next);
   };
 
-  const fetchLive = useCallback(async () => {
-    try {
-      const live = await localMatchService.getLocalMatchesByStatus('LIVE');
-      setLive(live);
-      setLastPoll(new Date());
-    } catch { /* silent */ }
-  }, []);
-
   useEffect(() => {
     const raw = localStorage.getItem('user');
     if (raw) {
@@ -137,23 +58,13 @@ const Dashboard: React.FC = () => {
     }
     const init = async () => {
       try {
-        const all = await localMatchService.getAllLocalMatches();
-        setRecent(all.slice(0, 5));
-        setTotal(all.length);
-        setLive(all.filter(m => m.status === 'LIVE'));
-        setCompleted(all.filter(m => m.status === 'COMPLETED').length);
-        setUpcoming(all.filter(m => m.status === 'UPCOMING').length);
-        setLastPoll(new Date());
+        const mine = await localMatchService.getMyLocalMatches();
+        setRecent(mine.slice(0, 5));
       } catch { /* graceful */ }
       finally { setLoading(false); }
     };
     init();
   }, []);
-
-  useEffect(() => {
-    const iv = setInterval(fetchLive, 6000);
-    return () => clearInterval(iv);
-  }, [fetchLive]);
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
@@ -172,6 +83,24 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="dashboard" data-theme={theme}>
+
+      {/* Match modals reuse the local-match page styles, whose light-theme rules
+          are scoped under `.lm-page` — `lm-portal` supplies that scope without
+          contributing any layout to the dashboard. */}
+      {(joinOpen || watchMatch) && (
+        <div className="lm-page lm-portal" data-theme={theme}>
+          {joinOpen && (
+            <JoinLiveMatchModal
+              onClose={() => setJoinOpen(false)}
+              onMatchFound={match => { setJoinOpen(false); setWatchMatch(match); }}
+            />
+          )}
+          {watchMatch && (
+            <WatchModal match={watchMatch} onClose={() => setWatchMatch(null)} />
+          )}
+        </div>
+      )}
+
       <div className="dash-container">
 
         {/* ── Top Bar ── */}
@@ -188,61 +117,22 @@ const Dashboard: React.FC = () => {
 
         {error && <div className="dash-error"><span>⚠</span>{error}</div>}
 
-        {/* ── Stats Grid ── */}
-        <div className="dash-stats-grid">
-          <Link to="/local-matches" className="stat-card stat-card--blue">
-            <div className="stat-icon">🏏</div>
-            <div className="stat-body">
-              <span className="stat-value">{totalMatches}</span>
-              <span className="stat-label">Total Matches</span>
+        {/* ── Watch Live (code-gated) — the primary action of the app ── */}
+        <section className="dash-section">
+          <div className="wl-hero">
+            <div className="wl-hero-icon">📺</div>
+            <div className="wl-hero-body">
+              <h2 className="wl-hero-title">Watch a Live Match</h2>
+              <p className="wl-hero-desc">
+                Enter the match code shared by the scorer to follow the game ball by ball.
+              </p>
             </div>
-          </Link>
-
-          <div className="stat-card stat-card--red">
-            <div className="stat-icon">🔴</div>
-            <div className="stat-body">
-              <span className="stat-value">{liveMatches.length}</span>
-              <span className="stat-label">Live Now</span>
-            </div>
+            <button className="wl-hero-btn" onClick={() => setJoinOpen(true)}>
+              <span className="wl-hero-btn-icon">🔑</span>
+              Show Live Match
+            </button>
           </div>
-
-          <div className="stat-card stat-card--green">
-            <div className="stat-icon">✅</div>
-            <div className="stat-body">
-              <span className="stat-value">{completedCount}</span>
-              <span className="stat-label">Completed</span>
-            </div>
-          </div>
-
-          <div className="stat-card stat-card--amber">
-            <div className="stat-icon">📅</div>
-            <div className="stat-body">
-              <span className="stat-value">{upcomingCount}</span>
-              <span className="stat-label">Upcoming</span>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Live Matches ── */}
-        {liveMatches.length > 0 && (
-          <section className="dash-section">
-            <div className="dlc-section-hdr">
-              <div className="dlc-section-title">
-                <span className="dlc-hdr-dot" />
-                Live Matches
-                <span className="dlc-hdr-count">{liveMatches.length}</span>
-              </div>
-              {lastPoll && (
-                <span className="dlc-refresh-txt">
-                  Updated {lastPoll.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                </span>
-              )}
-            </div>
-            <div className="dlc-grid">
-              {liveMatches.map(m => <DashLiveCard key={m.id} match={m} />)}
-            </div>
-          </section>
-        )}
+        </section>
 
         {/* ── Main Grid: Quick Actions + Recent Matches ── */}
         <div className="dash-main-grid">
@@ -292,7 +182,7 @@ const Dashboard: React.FC = () => {
           {/* Recent Matches */}
           <section className="dash-section">
             <div className="dash-section-hdr">
-              <h2 className="dash-section-title">Recent Matches</h2>
+              <h2 className="dash-section-title">Your Recent Matches</h2>
               <Link to="/local-matches" className="dash-view-all">View All →</Link>
             </div>
             <div className="recent-card">
