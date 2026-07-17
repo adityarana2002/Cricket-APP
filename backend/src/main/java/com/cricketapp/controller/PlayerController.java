@@ -40,6 +40,7 @@ public class PlayerController {
     public ResponseEntity<PlayerResponseDTO> getPlayer(@PathVariable Long id) {
         try {
             PlayerResponseDTO response = playerService.getPlayer(id);
+            System.out.println("Udptedcode");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error fetching player: {}", e.getMessage());
